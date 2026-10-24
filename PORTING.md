@@ -117,6 +117,12 @@ and compares diagnostic messages, byte ranges, duplicates and related labels.
 Release CI requires all 130 rules to have positive oracle coverage and checks
 that the verified executable is the one being packaged.
 
+For the correction-port follow-up, add `--corrections suggestions` (or `fixes`,
+`all`) to `verify:oxlint:all`. It also compares suggestion titles, edit order,
+byte ranges and replacement text, and reports positive correction coverage per
+rule. These modes currently expose the unported Effect suggestions; the default
+mode continues to check diagnostics without requesting corrections.
+
 ### Oxlint measurements
 
 With Effect 4.0.6, Oxlint 1.89.0 and oxlint-tsgolint 7.0.2004, 30 interleaved
