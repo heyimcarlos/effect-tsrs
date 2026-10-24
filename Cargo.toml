@@ -1,0 +1,29 @@
+[package]
+name = "effect-tsrs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+publish = false
+license = "MIT"
+description = "Native Effect diagnostics powered by the tsrs TypeScript compiler"
+
+[dependencies]
+mimalloc-safe = { version = "0.1.67", features = ["v3", "no_thp"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tsrs_ast = { path = ".repos/tsrs/crates/tsrs_ast" }
+tsrs_checker = { path = ".repos/tsrs/crates/tsrs_checker" }
+tsrs_compiler = { path = ".repos/tsrs/crates/tsrs_compiler" }
+tsrs_core = { path = ".repos/tsrs/crates/tsrs_core" }
+tsrs_diagnostics = { path = ".repos/tsrs/crates/tsrs_diagnostics" }
+tsrs_parser = { path = ".repos/tsrs/crates/tsrs_parser" }
+tsrs_scanner = { path = ".repos/tsrs/crates/tsrs_scanner" }
+tsrs_tsoptions = { path = ".repos/tsrs/crates/tsrs_tsoptions" }
+tsrs_vfs = { path = ".repos/tsrs/crates/tsrs_vfs" }
+
+[profile.dev]
+debug = false
+
+[profile.release]
+lto = "thin"
+

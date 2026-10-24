@@ -1,0 +1,2423 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-24T04:46:38.407Z",
+  "candidate": {
+    "binarySha256": "2c2feb5d30a520f16c961ef082e3966e93ad054130288eca9d5e0de87cad10b0",
+    "sourceTreeSha256": "06e4eeaf405ed1491ebc5045ac16340799d07389f0bccc474c46e04e96d28401",
+    "sourceHashes": {
+      "Cargo.lock": "f68908af6c3dcc668b31e75d7a2c13b96b25e76cd47326fc3e8ca05f07451b3e",
+      "Cargo.toml": "d7cf80365ada48a965e7b0d6778e703ff283d495adb59f412ab26e8da6671bca",
+      "patches/checker-extensions.patch": "7b7631296edcb706826990bf90b1598aeca09c036c4f781f79e4ec1ddacc008f",
+      "rust-toolchain.toml": "21458be06bfd69c934b7312ef64ab8fdb715a7b74acb72f6e8465d2f55c5ca49",
+      "src/config.rs": "b398441c3aeca608673cc5a15b5575fa24fb491a2528fd30a22f2a7e4c379442",
+      "src/lib.rs": "488d847f42a792ea5995af1cb56eef5eaa290ff8e9ac50d2438c890b8b9de286",
+      "src/main.rs": "d412792c22d848a54cdb686e20e0685156ed3c7093d5bd5a3b2f65a3e5710db7",
+      "src/messages.json": "02868e320977195c04cec58b86c43f729670caff35fb594022b3d2c287cb1dbe",
+      "src/project.rs": "73faf083252716e33c346e01c2dedaf92443aa7042ffb1eaea0ac4dca9d6323c",
+      "src/registry.rs": "2ef0172e30c5b6b40c3e2dd6acb61386d072b93bb082537c6b0a23f76b20aa77",
+      "src/rules/basic.rs": "61e1b9dd5bc475ebfd285b7eab80cc2d44036588f84ac0126063a8eb88a18e97",
+      "src/rules/catches.rs": "462734a05c3684204386a67d1354f09739d3329de32f6e00569d12b09b1b0bc0",
+      "src/rules/channels.rs": "29bd5793e2abbb865c418f613f72e82dcefbd24552ec72b717e234aff650b2c6",
+      "src/rules/generators.rs": "f71f3fc7aa162bf2af905f05583aea03e5004341faf4c6f0d91a2d367f5517e2",
+      "src/rules/globals.rs": "0c0531f3c777a5c74a986fc7dd30dd07c7eac10754d5b4cd4592d42d45be6fcd",
+      "src/rules/mod.rs": "e460d729cf5d9a8436cdd23f53cdcfb6121867594d00f0bfac12ebb82b736dad",
+      "src/rules/schema_api.rs": "9e4f94234333b9a070a631c393e1d6abf0732cb8ef70b297c0e88662de314445",
+      "src/rules/schema_classes.rs": "4f957e4ff80198dae24d21a739085a20e76dd9506fee7a4defcb4ba9d2fb7364",
+      "src/rules/services.rs": "e6accfd8493a44254fb313901ebb38b27653ed83cb48e2389c29980051cdeb97",
+      "src/rules/stability_common.rs": "893b5bc960d0a866f29a4c53fb951db2c671941c9254dff13325577353cb09a7",
+      "src/rules/stability_leak.rs": "de92f347e1c517fac52332ab0062d7e4c4c6c44ff7571ecb17ed793e1fe5f90a",
+      "src/rules/stability_usage.rs": "a8432ff479e8717d37157488f282d947e72e34a1addb8b61ca54345ae6f210e8",
+      "src/rules/transforms.rs": "ade605dbbdde8de1b95690b84f13891638143b6505b9576148c38c0b9651ef68",
+      "src/semantic/context.rs": "0375e174a5bc3466fab1155c8b696168ec1a3892f9a910319d74ef6ca2370d4c",
+      "src/semantic/flow.rs": "6d4c24273057445fef5dbd9de9036d47feb9346882c77fdefa3cdde0617c6a45",
+      "src/semantic/mod.rs": "2dc35962b8b688c4bac96459d61a4a7176d97399d1943c472798c7bb2b10c0fa",
+      "src/semantic/symbols.rs": "d7b41ef83aa57e843044ac370ad8943d74ad0c764707b722633342cd1f7be8e4",
+      "src/semantic/types.rs": "7384a602c72e8ea5988c31009cdd23b2f9980cfc09807101ab6ce5baf4b8a7d0",
+      "upstream.json": "8da7c30da208693dff5c906dffa4c84bfe07a451fd544a56cde77be3cdfd885e"
+    },
+    "tsrs": {
+      "repository": "https://github.com/oxc-project/tsrs",
+      "revision": "8f135f106a637cf76f0395f146d0417f5287046e"
+    },
+    "effectTsgo": {
+      "repository": "https://github.com/Effect-TS/tsgo",
+      "revision": "8813161074039b67ddb8fe1847e8efa0d8ff1e24",
+      "license": "MIT",
+      "fixtureDirectories": [
+        "testdata/tests/effect-v3",
+        "testdata/tests/effect-v4"
+      ],
+      "preprocessing": [
+        "internal/effecttest/runner.go:parseTestUnits and RunEffectTest",
+        "internal/bundledeffect/effect.go:MountEffect and MountVitest",
+        "internal/rules/rules_json_test.go:parseTestConfig (preview options only)"
+      ]
+    }
+  },
+  "passed": true,
+  "fixtures": 612,
+  "cleanControls": 2,
+  "comparedPairs": 4263,
+  "ruleCount": 130,
+  "checks": {
+    "configurationCases": 10,
+    "smokeProjects": 4,
+    "unitTests": 8,
+    "clippy": "passed with warnings denied",
+    "format": "passed"
+  },
+  "commands": [
+    "npm run check",
+    "npm test",
+    "npm run verify -- --binary target/release/effect-tsrs",
+    "npm run verify:config -- --binary target/release/effect-tsrs",
+    "npm run verify:all"
+  ],
+  "rawReports": [
+    "artifacts/all-rules/full-release2/report.json",
+    "artifacts/verify-config-release2/report.json",
+    "artifacts/all-rules/smoke-release2/report.json"
+  ],
+  "coverage": [
+    {
+      "rule": "apiStabilityLeak",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "experimentalApiUsage",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "unstableApiUsage",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "floatingEffect",
+      "comparedPairs": 45,
+      "matchedPairs": 45,
+      "positiveFixtures": 14,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 7,
+          "positiveFixtures": 5
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 38,
+          "positiveFixtures": 9
+        }
+      ]
+    },
+    {
+      "rule": "floatingEffectInVitest",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "missingEffectError",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 4
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "missingEffectContext",
+      "comparedPairs": 38,
+      "matchedPairs": 38,
+      "positiveFixtures": 11,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 9,
+          "positiveFixtures": 7
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "missingReturnYieldStar",
+      "comparedPairs": 36,
+      "matchedPairs": 36,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "missingStarInYieldEffectGen",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "catchUnfailableEffect",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 4
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "catchDieToOrDie",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "timeoutCatchTagToTimeoutOrElse",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "catchAllToMapError",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "catchRefailToTapError",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "catchAllTagDispatchToCatchTag",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "catchIfTagToCatchTag",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "catchConditionalRefailToCatchIf",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "catchTagToCatchReason",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "catchToOrElseSucceed",
+      "comparedPairs": 39,
+      "matchedPairs": 39,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 9,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "catchToIgnore",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "catchChainToFirstSuccessOf",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "multipleCatchTag",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "effectFnIife",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "tryCatchInEffectGen",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryPipe",
+      "comparedPairs": 39,
+      "matchedPairs": 39,
+      "positiveFixtures": 9,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 34,
+          "positiveFixtures": 6
+        }
+      ]
+    },
+    {
+      "rule": "returnEffectInGen",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryPipeChain",
+      "comparedPairs": 36,
+      "matchedPairs": 36,
+      "positiveFixtures": 9,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 6
+        }
+      ]
+    },
+    {
+      "rule": "effectSucceedWithVoid",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "preferSucceedSomeOrNone",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryEffectGen",
+      "comparedPairs": 73,
+      "matchedPairs": 73,
+      "positiveFixtures": 43,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 22,
+          "positiveFixtures": 19
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 51,
+          "positiveFixtures": 24
+        }
+      ]
+    },
+    {
+      "rule": "effectMapVoid",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryFailYieldableError",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "effectInVoidSuccess",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "effectInFailure",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unknownInEffectCatch",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalErrorInEffectCatch",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "globalErrorInEffectFailure",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "abortControllerInEffect",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "cryptoRandomUUID",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "cryptoRandomUUIDInEffect",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "globalFetch",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalFetchInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "processEnv",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "processEnvInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "globalConsole",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalConsoleInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "globalDate",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalDateInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "globalRandom",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalRandomInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "preferEffectArray",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "preferEffectRecord",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "preferEffectString",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "preferNamespaceImport",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "preferBarrelImport",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "globalTimers",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 6,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "globalTimersInEffect",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "runEffectInsideEffect",
+      "comparedPairs": 35,
+      "matchedPairs": 35,
+      "positiveFixtures": 8,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "preferSchemaOverJson",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "effectGenUsesAdapter",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "effectFnImplicitAny",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "strictBooleanExpressions",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "anyUnknownInErrorContext",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "asyncFunction",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "scopeInLayerEffect",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "strictEffectProvide",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unsafeEffectTypeAssertion",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "multipleEffectProvide",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "provideLayerSucceedToProvideService",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "missingLayerContext",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "layerMergeAllWithDependencies",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaStructWithTag",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaSync",
+      "comparedPairs": 38,
+      "matchedPairs": 38,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 7,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaSyncInEffect",
+      "comparedPairs": 32,
+      "matchedPairs": 32,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaNumber",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaLiteralNonFinite",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaUnionOfLiterals",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "newSchemaClass",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "missingEffectServiceDependency",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "leakingRequirements",
+      "comparedPairs": 40,
+      "matchedPairs": 40,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 7,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 33,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "lazyEffect",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "lazyPromiseInEffectSync",
+      "comparedPairs": 36,
+      "matchedPairs": 36,
+      "positiveFixtures": 7,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "promiseInEffectSuccess",
+      "comparedPairs": 35,
+      "matchedPairs": 35,
+      "positiveFixtures": 8,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "nestedEffectGenYield",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "redundantMapError",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "redundantOrDie",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryArrowBlock",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "unnecessaryTypeofType",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "preferSchemaTypeProperty",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "preferSchemaTaggedError",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "errorPayloadShadowsName",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "instanceOfSchema",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "genericEffectServices",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "overriddenSchemaConstructor",
+      "comparedPairs": 34,
+      "matchedPairs": 34,
+      "positiveFixtures": 5,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "schemaOpaqueInstanceMember",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "schemaClassMissingBrand",
+      "comparedPairs": 39,
+      "matchedPairs": 39,
+      "positiveFixtures": 11,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 37,
+          "positiveFixtures": 11
+        }
+      ]
+    },
+    {
+      "rule": "schemaClassObjectLiteral",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "redundantSchemaTagIdentifier",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 4
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "classSelfMismatch",
+      "comparedPairs": 38,
+      "matchedPairs": 38,
+      "positiveFixtures": 9,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 8,
+          "positiveFixtures": 6
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "effectFnOpportunity",
+      "comparedPairs": 80,
+      "matchedPairs": 80,
+      "positiveFixtures": 37,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 24,
+          "positiveFixtures": 15
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 56,
+          "positiveFixtures": 22
+        }
+      ]
+    },
+    {
+      "rule": "nonObjectEffectServiceType",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 26,
+          "positiveFixtures": 0
+        }
+      ]
+    },
+    {
+      "rule": "deterministicKeys",
+      "comparedPairs": 40,
+      "matchedPairs": 40,
+      "positiveFixtures": 13,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 7,
+          "positiveFixtures": 6
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 33,
+          "positiveFixtures": 7
+        }
+      ]
+    },
+    {
+      "rule": "missedPipeableOpportunity",
+      "comparedPairs": 36,
+      "matchedPairs": 36,
+      "positiveFixtures": 9,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 32,
+          "positiveFixtures": 6
+        }
+      ]
+    },
+    {
+      "rule": "missingPipeableSignature",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "duplicatePackage",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 1,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 1
+        }
+      ]
+    },
+    {
+      "rule": "effectDoNotation",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "effectMapFlatten",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "allOfMapToForEach",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "mapSomeToAsSome",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "flatMapToMap",
+      "comparedPairs": 37,
+      "matchedPairs": 37,
+      "positiveFixtures": 8,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 33,
+          "positiveFixtures": 6
+        }
+      ]
+    },
+    {
+      "rule": "flatMapToTap",
+      "comparedPairs": 35,
+      "matchedPairs": 35,
+      "positiveFixtures": 8,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 4
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 30,
+          "positiveFixtures": 4
+        }
+      ]
+    },
+    {
+      "rule": "flatMapIgnoredParamToAndThen",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "matchEffectToMatch",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 1
+        }
+      ]
+    },
+    {
+      "rule": "matchEffectToMapBoth",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 1
+        }
+      ]
+    },
+    {
+      "rule": "flatMapConditionalToFilterOrFail",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "optionMatchToFromOption",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 1,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 1
+        }
+      ]
+    },
+    {
+      "rule": "syncToSucceed",
+      "comparedPairs": 36,
+      "matchedPairs": 36,
+      "positiveFixtures": 9,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 5,
+          "positiveFixtures": 4
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 31,
+          "positiveFixtures": 5
+        }
+      ]
+    },
+    {
+      "rule": "effectSleepZeroToYieldNow",
+      "comparedPairs": 33,
+      "matchedPairs": 33,
+      "positiveFixtures": 6,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 4,
+          "positiveFixtures": 3
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "extendsNativeError",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "nodeBuiltinImport",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "obsoleteMatchImport",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "obsoleteSchemaImport",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "newPromise",
+      "comparedPairs": 31,
+      "matchedPairs": 31,
+      "positiveFixtures": 4,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 3,
+          "positiveFixtures": 2
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "outdatedApi",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "serviceNotAsClass",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "preferUnsafeConstructor",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "preferTypedSchemaDecoder",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 29,
+          "positiveFixtures": 3
+        }
+      ]
+    },
+    {
+      "rule": "acquireReleaseDisposable",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "raceFirstWithSleepToTimeout",
+      "comparedPairs": 29,
+      "matchedPairs": 29,
+      "positiveFixtures": 2,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 1,
+          "positiveFixtures": 0
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    },
+    {
+      "rule": "runOfExitToRunExit",
+      "comparedPairs": 30,
+      "matchedPairs": 30,
+      "positiveFixtures": 3,
+      "versions": [
+        {
+          "version": "v3",
+          "comparedPairs": 2,
+          "positiveFixtures": 1
+        },
+        {
+          "version": "v4",
+          "comparedPairs": 28,
+          "positiveFixtures": 2
+        }
+      ]
+    }
+  ]
+}

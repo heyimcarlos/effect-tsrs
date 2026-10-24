@@ -1,0 +1,35 @@
+{
+  "projects": [
+    {
+      "name": "upstream",
+      "typescript": "record",
+      "minimumDiagnostics": {
+        "floatingEffect": 5,
+        "asyncFunction": 4,
+        "unnecessaryPipe": 4
+      }
+    },
+    {
+      "name": "typed",
+      "typescript": "clean",
+      "minimumDiagnostics": {
+        "floatingEffect": 5,
+        "asyncFunction": 5,
+        "unnecessaryPipe": 5
+      }
+    },
+    {
+      "name": "clean",
+      "typescript": "clean",
+      "expectedDiagnostics": 0
+    },
+    {
+      "name": "typescript-errors",
+      "typescript": "errors",
+      "expectedTypeScriptCodes": [
+        2322
+      ],
+      "expectedDiagnostics": 0
+    }
+  ]
+}

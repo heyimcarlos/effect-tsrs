@@ -1,0 +1,1528 @@
+[
+  {
+    "symbol": "ApiStabilityLeak",
+    "name": "apiStabilityLeak",
+    "group": "maintainers",
+    "description": "Reports exported APIs whose public surface exposes a less stable type",
+    "severity": "SeverityOff",
+    "versions": [
+      "v4"
+    ],
+    "file": "api_stability_leak.go"
+  },
+  {
+    "symbol": "ExperimentalApiUsage",
+    "name": "experimentalApiUsage",
+    "group": "correctness",
+    "description": "Warns when using an API marked @stability experimental",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v4"
+    ],
+    "file": "stability_api_usage.go"
+  },
+  {
+    "symbol": "UnstableApiUsage",
+    "name": "unstableApiUsage",
+    "group": "correctness",
+    "description": "Warns when using an API marked @stability unstable",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v4"
+    ],
+    "file": "stability_api_usage.go"
+  },
+  {
+    "symbol": "FloatingEffect",
+    "name": "floatingEffect",
+    "group": "correctness",
+    "description": "Detects Effect values that are neither yielded nor assigned",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "floating_effect.go"
+  },
+  {
+    "symbol": "FloatingEffectInVitest",
+    "name": "floatingEffectInVitest",
+    "group": "correctness",
+    "description": "Detects Effects returned from non-Effect-aware Vitest callbacks",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "floating_effect_in_vitest.go"
+  },
+  {
+    "symbol": "MissingEffectError",
+    "name": "missingEffectError",
+    "group": "correctness",
+    "description": "Detects Effect values with unhandled error types",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_effect_error.go"
+  },
+  {
+    "symbol": "MissingEffectContext",
+    "name": "missingEffectContext",
+    "group": "correctness",
+    "description": "Detects Effect values with unhandled context requirements",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_effect_context.go"
+  },
+  {
+    "symbol": "MissingReturnYieldStar",
+    "name": "missingReturnYieldStar",
+    "group": "correctness",
+    "description": "Suggests using return yield* for Effects that never succeed",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_return_yield_star.go"
+  },
+  {
+    "symbol": "MissingStarInYieldEffectGen",
+    "name": "missingStarInYieldEffectGen",
+    "group": "correctness",
+    "description": "Detects bare yield (without *) inside Effect generator scopes",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_star_in_yield_effect_gen.go"
+  },
+  {
+    "symbol": "CatchUnfailableEffect",
+    "name": "catchUnfailableEffect",
+    "group": "antipattern",
+    "description": "Warns when using error handling on Effects that never fail",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_unfailable_effect.go"
+  },
+  {
+    "symbol": "CatchDieToOrDie",
+    "name": "catchDieToOrDie",
+    "group": "style",
+    "description": "Suggests using Effect.orDie instead of Effect.catch or Effect.catchAll with an identity-forwarding Effect.die handler",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_die_to_or_die.go"
+  },
+  {
+    "symbol": "TimeoutCatchTagToTimeoutOrElse",
+    "name": "timeoutCatchTagToTimeoutOrElse",
+    "group": "style",
+    "description": "Suggests dedicated timeout combinators instead of catching TimeoutError immediately after Effect.timeout",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "timeout_catch_tag_to_timeout_or_else.go"
+  },
+  {
+    "symbol": "CatchAllToMapError",
+    "name": "catchAllToMapError",
+    "group": "style",
+    "description": "Suggests using Effect.mapError instead of Effect.catch + Effect.fail",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_all_to_map_error.go"
+  },
+  {
+    "symbol": "CatchRefailToTapError",
+    "name": "catchRefailToTapError",
+    "group": "style",
+    "description": "Suggests Effect.tapError for catch handlers that sequence an effect and then re-fail the original error",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "catch_refail_to_tap_error.go"
+  },
+  {
+    "symbol": "CatchAllTagDispatchToCatchTag",
+    "name": "catchAllTagDispatchToCatchTag",
+    "group": "style",
+    "description": "Suggests Effect.catchTag or Effect.catchTags for catch-all handlers that re-fail unmatched tagged errors",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_all_tag_dispatch_to_catch_tag.go"
+  },
+  {
+    "symbol": "CatchIfTagToCatchTag",
+    "name": "catchIfTagToCatchTag",
+    "group": "style",
+    "description": "Suggests Effect.catchTag instead of Effect.catchIf with a _tag equality or Predicate.isTagged predicate",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_if_tag_to_catch_tag.go"
+  },
+  {
+    "symbol": "CatchConditionalRefailToCatchIf",
+    "name": "catchConditionalRefailToCatchIf",
+    "group": "style",
+    "description": "Suggests Effect.catchIf, Effect.catchCauseIf, or Effect.catchTag for conditional catch handlers that re-fail their untouched input",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "catch_conditional_refail_to_catch_if.go"
+  },
+  {
+    "symbol": "CatchTagToCatchReason",
+    "name": "catchTagToCatchReason",
+    "group": "style",
+    "description": "Suggests Effect.catchReason or Effect.catchReasons for handlers that re-fail unmatched reason._tag branches",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "catch_tag_to_catch_reason.go"
+  },
+  {
+    "symbol": "CatchToOrElseSucceed",
+    "name": "catchToOrElseSucceed",
+    "group": "style",
+    "description": "Suggests using Effect.orElseSucceed instead of Effect.catch + Effect.succeed",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "catch_to_or_else_succeed.go"
+  },
+  {
+    "symbol": "CatchToIgnore",
+    "name": "catchToIgnore",
+    "group": "style",
+    "description": "Suggests using Effect.ignore or Effect.ignoreCause instead of Effect.catch/catchCause returning Effect.void",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "catch_to_ignore.go"
+  },
+  {
+    "symbol": "CatchChainToFirstSuccessOf",
+    "name": "catchChainToFirstSuccessOf",
+    "group": "style",
+    "description": "Suggests Effect.firstSuccessOf for consecutive error-independent Effect.catch fallbacks when the error type is preserved",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "catch_chain_to_first_success_of.go"
+  },
+  {
+    "symbol": "MultipleCatchTag",
+    "name": "multipleCatchTag",
+    "group": "style",
+    "description": "Suggests collapsing consecutive Effect.catchTag transformations into a single Effect.catchTags call when semantics stay equivalent",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "multiple_catch_tag.go"
+  },
+  {
+    "symbol": "EffectFnIife",
+    "name": "effectFnIife",
+    "group": "antipattern",
+    "description": "Effect.fn or Effect.fnUntraced is called as an IIFE; use Effect.gen instead",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_fn_iife.go"
+  },
+  {
+    "symbol": "TryCatchInEffectGen",
+    "name": "tryCatchInEffectGen",
+    "group": "antipattern",
+    "description": "Discourages try/catch in Effect generators in favor of Effect error handling",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "try_catch_in_effect_gen.go"
+  },
+  {
+    "symbol": "UnnecessaryPipe",
+    "name": "unnecessaryPipe",
+    "group": "style",
+    "description": "Removes pipe calls with no arguments",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_pipe.go"
+  },
+  {
+    "symbol": "ReturnEffectInGen",
+    "name": "returnEffectInGen",
+    "group": "antipattern",
+    "description": "Warns when returning an Effect in a generator causes nested Effect<Effect<...>>",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "return_effect_in_gen.go"
+  },
+  {
+    "symbol": "UnnecessaryPipeChain",
+    "name": "unnecessaryPipeChain",
+    "group": "style",
+    "description": "Simplifies chained pipe calls into a single pipe call",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_pipe_chain.go"
+  },
+  {
+    "symbol": "EffectSucceedWithVoid",
+    "name": "effectSucceedWithVoid",
+    "group": "style",
+    "description": "Suggests using Effect.void instead of Effect.succeed(undefined) or Effect.succeed(void 0)",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_succeed_with_void.go"
+  },
+  {
+    "symbol": "PreferSucceedSomeOrNone",
+    "name": "preferSucceedSomeOrNone",
+    "group": "style",
+    "description": "Suggests using Effect.succeedNone or Effect.succeedSome instead of wrapping Option.none or Option.some with Effect.succeed",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_succeed_some_or_none.go"
+  },
+  {
+    "symbol": "UnnecessaryEffectGen",
+    "name": "unnecessaryEffectGen",
+    "group": "style",
+    "description": "Suggests removing Effect.gen when it contains only a single return statement",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_effect_gen.go"
+  },
+  {
+    "symbol": "EffectMapVoid",
+    "name": "effectMapVoid",
+    "group": "style",
+    "description": "Suggests using Effect.asVoid instead of Effect.map(() => void 0), Effect.map(() => undefined), or Effect.map(() => {})",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_map_void.go"
+  },
+  {
+    "symbol": "UnnecessaryFailYieldableError",
+    "name": "unnecessaryFailYieldableError",
+    "group": "style",
+    "description": "Suggests yielding yieldable errors directly instead of wrapping with Effect.fail",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_fail_yieldable_error.go"
+  },
+  {
+    "symbol": "EffectInVoidSuccess",
+    "name": "effectInVoidSuccess",
+    "group": "antipattern",
+    "description": "Detects nested Effects in void success channels that may cause unexecuted effects",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_in_void_success.go"
+  },
+  {
+    "symbol": "EffectInFailure",
+    "name": "effectInFailure",
+    "group": "antipattern",
+    "description": "Warns when an Effect is used inside an Effect failure channel",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_in_failure.go"
+  },
+  {
+    "symbol": "UnknownInEffectCatch",
+    "name": "unknownInEffectCatch",
+    "group": "antipattern",
+    "description": "Warns when catch callbacks return unknown instead of typed errors",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unknown_in_effect_catch.go"
+  },
+  {
+    "symbol": "GlobalErrorInEffectCatch",
+    "name": "globalErrorInEffectCatch",
+    "group": "antipattern",
+    "description": "Warns when catch callbacks return global Error type instead of typed errors",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_error_in_effect_catch.go"
+  },
+  {
+    "symbol": "GlobalErrorInEffectFailure",
+    "name": "globalErrorInEffectFailure",
+    "group": "antipattern",
+    "description": "Warns when the global Error type is used in an Effect failure channel",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_error_in_effect_failure.go"
+  },
+  {
+    "symbol": "AbortControllerInEffect",
+    "name": "abortControllerInEffect",
+    "group": "effectNative",
+    "description": "Warns when manually constructing AbortController inside Effect generators instead of using Effect.abortSignal",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "abort_controller_in_effect.go"
+  },
+  {
+    "symbol": "CryptoRandomUUID",
+    "name": "cryptoRandomUUID",
+    "group": "effectNative",
+    "description": "Warns when using crypto.randomUUID() outside Effect generators instead of the Effect Crypto module",
+    "severity": "SeverityOff",
+    "versions": [
+      "v4"
+    ],
+    "file": "crypto_random_uuid.go"
+  },
+  {
+    "symbol": "CryptoRandomUUIDInEffect",
+    "name": "cryptoRandomUUIDInEffect",
+    "group": "effectNative",
+    "description": "Warns when using crypto.randomUUID() inside Effect generators instead of the Effect Crypto module",
+    "severity": "SeverityOff",
+    "versions": [
+      "v4"
+    ],
+    "file": "crypto_random_uuid.go"
+  },
+  {
+    "symbol": "GlobalFetch",
+    "name": "globalFetch",
+    "group": "effectNative",
+    "description": "Warns when using the global fetch function outside Effect generators instead of the Effect HTTP client",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_fetch.go"
+  },
+  {
+    "symbol": "GlobalFetchInEffect",
+    "name": "globalFetchInEffect",
+    "group": "effectNative",
+    "description": "Warns when using the global fetch function inside Effect generators instead of the Effect HTTP client",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_fetch.go"
+  },
+  {
+    "symbol": "ProcessEnv",
+    "name": "processEnv",
+    "group": "effectNative",
+    "description": "Warns when reading process.env outside Effect generators instead of using Effect Config",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "process_env.go"
+  },
+  {
+    "symbol": "ProcessEnvInEffect",
+    "name": "processEnvInEffect",
+    "group": "effectNative",
+    "description": "Warns when reading process.env inside Effect generators instead of using Effect Config",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "process_env.go"
+  },
+  {
+    "symbol": "GlobalConsole",
+    "name": "globalConsole",
+    "group": "effectNative",
+    "description": "Warns when using console methods outside Effect generators instead of Effect.log/Logger",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_console.go"
+  },
+  {
+    "symbol": "GlobalConsoleInEffect",
+    "name": "globalConsoleInEffect",
+    "group": "effectNative",
+    "description": "Warns when using console methods inside Effect generators instead of Effect.log/Logger",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_console.go"
+  },
+  {
+    "symbol": "GlobalDate",
+    "name": "globalDate",
+    "group": "effectNative",
+    "description": "Warns when using Date.now() or new Date() outside Effect generators instead of Clock/DateTime",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_date.go"
+  },
+  {
+    "symbol": "GlobalDateInEffect",
+    "name": "globalDateInEffect",
+    "group": "effectNative",
+    "description": "Warns when using Date.now() or new Date() inside Effect generators instead of Clock/DateTime",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_date.go"
+  },
+  {
+    "symbol": "GlobalRandom",
+    "name": "globalRandom",
+    "group": "effectNative",
+    "description": "Warns when using Math.random() outside Effect generators instead of the Random service",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_random.go"
+  },
+  {
+    "symbol": "GlobalRandomInEffect",
+    "name": "globalRandomInEffect",
+    "group": "effectNative",
+    "description": "Warns when using Math.random() inside Effect generators instead of the Random service",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_random.go"
+  },
+  {
+    "symbol": "PreferEffectArray",
+    "name": "preferEffectArray",
+    "group": "effectNative",
+    "description": "Suggests Effect Array APIs for native array member references, with semantic caveats",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_effect_array.go"
+  },
+  {
+    "symbol": "PreferEffectRecord",
+    "name": "preferEffectRecord",
+    "group": "effectNative",
+    "description": "Suggests Effect Record APIs for native Object member references, with semantic caveats",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_effect_record.go"
+  },
+  {
+    "symbol": "PreferEffectString",
+    "name": "preferEffectString",
+    "group": "effectNative",
+    "description": "Suggests Effect String APIs for native String method invocations, with semantic caveats",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_effect_string.go"
+  },
+  {
+    "symbol": "PreferNamespaceImport",
+    "name": "preferNamespaceImport",
+    "group": "style",
+    "description": "Reports named imports from packages configured in namespaceImportPackages that should be namespace imports",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_namespace_import.go"
+  },
+  {
+    "symbol": "PreferBarrelImport",
+    "name": "preferBarrelImport",
+    "group": "style",
+    "description": "Reports imports of individual modules from packages configured in barrelImportPackages that should be named imports from the package barrel",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_barrel_import.go"
+  },
+  {
+    "symbol": "GlobalTimers",
+    "name": "globalTimers",
+    "group": "effectNative",
+    "description": "Warns when using setTimeout/setInterval outside Effect generators instead of Effect.sleep/Schedule",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_timers.go"
+  },
+  {
+    "symbol": "GlobalTimersInEffect",
+    "name": "globalTimersInEffect",
+    "group": "effectNative",
+    "description": "Warns when using setTimeout/setInterval inside Effect generators instead of Effect.sleep/Schedule",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "global_timers.go"
+  },
+  {
+    "symbol": "RunEffectInsideEffect",
+    "name": "runEffectInsideEffect",
+    "group": "antipattern",
+    "description": "Suggests using Runtime or Effect.run*With methods instead of Effect.run* inside Effect contexts",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "run_effect_inside_effect.go"
+  },
+  {
+    "symbol": "PreferSchemaOverJson",
+    "name": "preferSchemaOverJson",
+    "group": "effectNative",
+    "description": "Suggests using Effect Schema for JSON operations instead of JSON.parse/JSON.stringify",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_schema_over_json.go"
+  },
+  {
+    "symbol": "EffectGenUsesAdapter",
+    "name": "effectGenUsesAdapter",
+    "group": "antipattern",
+    "description": "Warns when using the deprecated adapter parameter in Effect.gen",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_gen_uses_adapter.go"
+  },
+  {
+    "symbol": "EffectFnImplicitAny",
+    "name": "effectFnImplicitAny",
+    "group": "correctness",
+    "description": "Mirrors noImplicitAny for unannotated Effect.fn, Effect.fnUntraced, and Effect.fnUntracedEager callback parameters when no outer contextual function type exists. Requires TS's noImplicitAny: true",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_fn_implicit_any.go"
+  },
+  {
+    "symbol": "StrictBooleanExpressions",
+    "name": "strictBooleanExpressions",
+    "group": "style",
+    "description": "Enforces boolean types in conditional expressions for type safety",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "strict_boolean_expressions.go"
+  },
+  {
+    "symbol": "AnyUnknownInErrorContext",
+    "name": "anyUnknownInErrorContext",
+    "group": "correctness",
+    "description": "Detects 'any' or 'unknown' types in Effect error or requirements channels",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "any_unknown_in_error_context.go"
+  },
+  {
+    "symbol": "AsyncFunction",
+    "name": "asyncFunction",
+    "group": "effectNative",
+    "description": "Warns when declaring async functions and suggests using Effect values and Effect.gen for async control flow",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "async_function.go"
+  },
+  {
+    "symbol": "ScopeInLayerEffect",
+    "name": "scopeInLayerEffect",
+    "group": "antipattern",
+    "description": "Suggests using Layer.scoped instead of Layer.effect when Scope is in requirements",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3"
+    ],
+    "file": "scope_in_layer_effect.go"
+  },
+  {
+    "symbol": "StrictEffectProvide",
+    "name": "strictEffectProvide",
+    "group": "antipattern",
+    "description": "Warns when using Effect.provide with layers outside of application entry points",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "strict_effect_provide.go"
+  },
+  {
+    "symbol": "UnsafeEffectTypeAssertion",
+    "name": "unsafeEffectTypeAssertion",
+    "group": "correctness",
+    "description": "Detects unsafe type assertions that narrow Effect, Stream, or Layer error or requirements channels",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unsafe_effect_type_assertion.go"
+  },
+  {
+    "symbol": "MultipleEffectProvide",
+    "name": "multipleEffectProvide",
+    "group": "antipattern",
+    "description": "Warns against chaining Effect.provide calls which can cause service lifecycle issues",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "multiple_effect_provide.go"
+  },
+  {
+    "symbol": "ProvideLayerSucceedToProvideService",
+    "name": "provideLayerSucceedToProvideService",
+    "group": "style",
+    "description": "Suggests providing inline Layer.succeed and Layer.effect services directly",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "provide_layer_succeed_to_provide_service.go"
+  },
+  {
+    "symbol": "MissingLayerContext",
+    "name": "missingLayerContext",
+    "group": "correctness",
+    "description": "Detects Layer values with unhandled context requirements",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_layer_context.go"
+  },
+  {
+    "symbol": "LayerMergeAllWithDependencies",
+    "name": "layerMergeAllWithDependencies",
+    "group": "antipattern",
+    "description": "Detects interdependencies in Layer.mergeAll calls where one layer provides a service that another layer requires",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "layer_merge_all_with_dependencies.go"
+  },
+  {
+    "symbol": "SchemaStructWithTag",
+    "name": "schemaStructWithTag",
+    "group": "style",
+    "description": "Suggests using Schema.TaggedStruct instead of Schema.Struct with _tag field",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "schema_struct_with_tag.go"
+  },
+  {
+    "symbol": "SchemaSync",
+    "name": "schemaSync",
+    "group": "effectNative",
+    "description": "Suggests Effect-based Schema decoding and encoding instead of synchronous methods",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "schema_sync.go"
+  },
+  {
+    "symbol": "SchemaSyncInEffect",
+    "name": "schemaSyncInEffect",
+    "group": "antipattern",
+    "description": "Suggests using Effect-based Schema methods instead of sync methods inside Effect generators",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "schema_sync_in_effect.go"
+  },
+  {
+    "symbol": "SchemaNumber",
+    "name": "schemaNumber",
+    "group": "style",
+    "description": "Suggests Schema.Finite and Schema.FiniteFromString instead of Schema.Number APIs when describing domain numbers",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "schema_number.go"
+  },
+  {
+    "symbol": "SchemaLiteralNonFinite",
+    "name": "schemaLiteralNonFinite",
+    "group": "correctness",
+    "description": "Reports statically known non-finite numbers passed to Schema literal constructors",
+    "severity": "SeverityError",
+    "versions": [
+      "v4"
+    ],
+    "file": "schema_literal_non_finite.go"
+  },
+  {
+    "symbol": "SchemaUnionOfLiterals",
+    "name": "schemaUnionOfLiterals",
+    "group": "style",
+    "description": "Suggests combining multiple Schema.Literal calls in Schema.Union into a single Schema.Literal",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3"
+    ],
+    "file": "schema_union_of_literals.go"
+  },
+  {
+    "symbol": "NewSchemaClass",
+    "name": "newSchemaClass",
+    "group": "style",
+    "description": "Suggests using Schema make instead of new for Schema classes",
+    "severity": "SeverityOff",
+    "versions": [
+      "v4"
+    ],
+    "file": "new_schema_class.go"
+  },
+  {
+    "symbol": "MissingEffectServiceDependency",
+    "name": "missingEffectServiceDependency",
+    "group": "style",
+    "description": "Checks that Effect.Service dependencies satisfy all required layer inputs",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3"
+    ],
+    "file": "missing_effect_service_dependency.go"
+  },
+  {
+    "symbol": "LeakingRequirements",
+    "name": "leakingRequirements",
+    "group": "antipattern",
+    "description": "Detects implementation services leaked in service methods",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "leaking_requirements.go"
+  },
+  {
+    "symbol": "LazyEffect",
+    "name": "lazyEffect",
+    "group": "antipattern",
+    "description": "Suggests avoiding exported zero-argument functions and service members that lazily return Effect or Stream values",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "lazy_effect.go"
+  },
+  {
+    "symbol": "LazyPromiseInEffectSync",
+    "name": "lazyPromiseInEffectSync",
+    "group": "antipattern",
+    "description": "Warns when Effect.sync lazily returns a Promise instead of using an async Effect constructor",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "lazy_promise_in_effect_sync.go"
+  },
+  {
+    "symbol": "PromiseInEffectSuccess",
+    "name": "promiseInEffectSuccess",
+    "group": "correctness",
+    "description": "Detects Promise types in Effect success channels where they are not awaited",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "promise_in_effect_success.go"
+  },
+  {
+    "symbol": "NestedEffectGenYield",
+    "name": "nestedEffectGenYield",
+    "group": "style",
+    "description": "Warns when yielding a nested bare Effect.gen inside an existing Effect generator context",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "nested_effect_gen_yield.go"
+  },
+  {
+    "symbol": "RedundantMapError",
+    "name": "redundantMapError",
+    "group": "style",
+    "description": "Suggests hoisting a repeated trailing Effect.mapError from every yield in an Effect generator",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "redundant_map_error.go"
+  },
+  {
+    "symbol": "RedundantOrDie",
+    "name": "redundantOrDie",
+    "group": "style",
+    "description": "Suggests hoisting a repeated trailing Effect.orDie from every yield in an Effect generator",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "redundant_or_die.go"
+  },
+  {
+    "symbol": "UnnecessaryArrowBlock",
+    "name": "unnecessaryArrowBlock",
+    "group": "style",
+    "description": "Suggests using a concise arrow body when the block only returns an expression",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_arrow_block.go"
+  },
+  {
+    "symbol": "UnnecessaryTypeofType",
+    "name": "unnecessaryTypeofType",
+    "group": "style",
+    "description": "Suggests replacing typeof Schema.Type style annotations with the matching named type when available",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "unnecessary_typeof_type.go"
+  },
+  {
+    "symbol": "PreferSchemaTypeProperty",
+    "name": "preferSchemaTypeProperty",
+    "group": "style",
+    "description": "Disallows Schema.Schema.Type<typeof X> in favor of typeof X.Type",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_schema_type_property.go"
+  },
+  {
+    "symbol": "PreferSchemaTaggedError",
+    "name": "preferSchemaTaggedError",
+    "group": "style",
+    "description": "Suggests using Schema.TaggedError instead of Data.TaggedError",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "prefer_schema_tagged_error.go"
+  },
+  {
+    "symbol": "ErrorPayloadShadowsName",
+    "name": "errorPayloadShadowsName",
+    "group": "correctness",
+    "description": "Detects error payload fields named `name` that shadow the error's own name",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "error_payload_shadows_name.go"
+  },
+  {
+    "symbol": "InstanceOfSchema",
+    "name": "instanceOfSchema",
+    "group": "effectNative",
+    "description": "Suggests using Schema.is instead of instanceof for Effect Schema types",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "instance_of_schema.go"
+  },
+  {
+    "symbol": "GenericEffectServices",
+    "name": "genericEffectServices",
+    "group": "correctness",
+    "description": "Prevents services with type parameters that cannot be discriminated at runtime",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3"
+    ],
+    "file": "generic_effect_services.go"
+  },
+  {
+    "symbol": "OverriddenSchemaConstructor",
+    "name": "overriddenSchemaConstructor",
+    "group": "correctness",
+    "description": "Prevents overriding constructors in Schema classes which breaks decoding behavior",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "overridden_schema_constructor.go"
+  },
+  {
+    "symbol": "SchemaOpaqueInstanceMember",
+    "name": "schemaOpaqueInstanceMember",
+    "group": "correctness",
+    "description": "Disallows instance members in classes extending Schema.Opaque",
+    "severity": "SeverityError",
+    "versions": [
+      "v4"
+    ],
+    "file": "schema_opaque_instance_member.go"
+  },
+  {
+    "symbol": "SchemaClassMissingBrand",
+    "name": "schemaClassMissingBrand",
+    "group": "correctness",
+    "description": "Warns when Schema classes, errors, or Opaque classes omit the brand type argument",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "schema_class_missing_brand.go"
+  },
+  {
+    "symbol": "SchemaClassObjectLiteral",
+    "name": "schemaClassObjectLiteral",
+    "group": "correctness",
+    "description": "Warns when object literals are checked as Schema class instances without the class prototype",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "schema_class_object_literal.go"
+  },
+  {
+    "symbol": "RedundantSchemaTagIdentifier",
+    "name": "redundantSchemaTagIdentifier",
+    "group": "style",
+    "description": "Suggests removing redundant identifier argument when it equals the tag value in Schema.TaggedClass/TaggedError/TaggedRequest",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "redundant_schema_tag_identifier.go"
+  },
+  {
+    "symbol": "ClassSelfMismatch",
+    "name": "classSelfMismatch",
+    "group": "correctness",
+    "description": "Ensures Self type parameter matches the class name in Context/Service/Tag/Schema classes",
+    "severity": "SeverityError",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "class_self_mismatch.go"
+  },
+  {
+    "symbol": "EffectFnOpportunity",
+    "name": "effectFnOpportunity",
+    "group": "style",
+    "description": "Suggests using Effect.fn for functions that return an Effect",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_fn_opportunity.go"
+  },
+  {
+    "symbol": "NonObjectEffectServiceType",
+    "name": "nonObjectEffectServiceType",
+    "group": "correctness",
+    "description": "Ensures Effect.Service types are objects, not primitives",
+    "severity": "SeverityError",
+    "versions": [
+      "v3"
+    ],
+    "file": "non_object_effect_service_type.go"
+  },
+  {
+    "symbol": "DeterministicKeys",
+    "name": "deterministicKeys",
+    "group": "style",
+    "description": "Enforces deterministic naming for service/tag/error identifiers based on class names",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "deterministic_keys.go"
+  },
+  {
+    "symbol": "MissedPipeableOpportunity",
+    "name": "missedPipeableOpportunity",
+    "group": "style",
+    "description": "Suggests using .pipe() for nested function calls",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missed_pipeable_opportunity.go"
+  },
+  {
+    "symbol": "MissingPipeableSignature",
+    "name": "missingPipeableSignature",
+    "group": "style",
+    "description": "Reports exported fixed-arity functions whose call signatures have no corresponding pipeable overload",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "missing_pipeable_signature.go"
+  },
+  {
+    "symbol": "DuplicatePackage",
+    "name": "duplicatePackage",
+    "group": "correctness",
+    "description": "Warns when multiple versions of an Effect-related package are detected in the program",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "duplicate_package.go"
+  },
+  {
+    "symbol": "EffectDoNotation",
+    "name": "effectDoNotation",
+    "group": "style",
+    "description": "Suggests using Effect.gen or Effect.fn instead of the Effect.Do notation helpers",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_do_notation.go"
+  },
+  {
+    "symbol": "EffectMapFlatten",
+    "name": "effectMapFlatten",
+    "group": "style",
+    "description": "Suggests using Effect.flatMap instead of Effect.map followed by Effect.flatten in piping flows",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_map_flatten.go"
+  },
+  {
+    "symbol": "AllOfMapToForEach",
+    "name": "allOfMapToForEach",
+    "group": "style",
+    "description": "Suggests using Effect.forEach instead of Effect.all over an effectful Array#map",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "all_of_map_to_for_each.go"
+  },
+  {
+    "symbol": "MapSomeToAsSome",
+    "name": "mapSomeToAsSome",
+    "group": "style",
+    "description": "Suggests using Effect.asSome instead of Effect.map when the mapper only wraps the success value with Option.some",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "map_some_to_as_some.go"
+  },
+  {
+    "symbol": "FlatMapToMap",
+    "name": "flatMapToMap",
+    "group": "style",
+    "description": "Suggests using Effect.map instead of Effect.flatMap when the callback only wraps its result with Effect.succeed",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "flat_map_to_map.go"
+  },
+  {
+    "symbol": "FlatMapToTap",
+    "name": "flatMapToTap",
+    "group": "style",
+    "description": "Suggests Effect.tap when a flatMap or andThen callback runs an effect and returns its unchanged parameter",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "flat_map_to_tap.go"
+  },
+  {
+    "symbol": "FlatMapIgnoredParamToAndThen",
+    "name": "flatMapIgnoredParamToAndThen",
+    "group": "style",
+    "description": "Suggests using Effect.andThen instead of Effect.flatMap when a zero-parameter callback returns an existing Effect value",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "flat_map_ignored_param_to_and_then.go"
+  },
+  {
+    "symbol": "MatchEffectToMatch",
+    "name": "matchEffectToMatch",
+    "group": "style",
+    "description": "Suggests Effect.match or Effect.matchCause when both Effect.matchEffect handlers only return Effect.succeed",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "match_effect_to_match.go"
+  },
+  {
+    "symbol": "MatchEffectToMapBoth",
+    "name": "matchEffectToMapBoth",
+    "group": "style",
+    "description": "Suggests Effect.mapBoth when Effect.matchEffect only transforms the failure and success channels",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "match_effect_to_map_both.go"
+  },
+  {
+    "symbol": "FlatMapConditionalToFilterOrFail",
+    "name": "flatMapConditionalToFilterOrFail",
+    "group": "style",
+    "description": "Suggests Effect.filterOrFail or Effect.filterOrElse when Effect.flatMap conditionally passes its input through with Effect.succeed",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "flat_map_conditional_to_filter_or_fail.go"
+  },
+  {
+    "symbol": "OptionMatchToFromOption",
+    "name": "optionMatchToFromOption",
+    "group": "style",
+    "description": "Suggests Effect.fromOption when Option.match or an Option tag conditional only converts Some to Effect.succeed and None to Effect.fail",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "option_match_to_from_option.go"
+  },
+  {
+    "symbol": "SyncToSucceed",
+    "name": "syncToSucceed",
+    "group": "style",
+    "description": "Suggests using Effect.succeed instead of Effect.sync when the thunk returns a constant value",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "sync_to_succeed.go"
+  },
+  {
+    "symbol": "EffectSleepZeroToYieldNow",
+    "name": "effectSleepZeroToYieldNow",
+    "group": "style",
+    "description": "Suggests Effect.yieldNow for cooperative yielding instead of sleeping for zero duration",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "effect_sleep_zero_to_yield_now.go"
+  },
+  {
+    "symbol": "ExtendsNativeError",
+    "name": "extendsNativeError",
+    "group": "effectNative",
+    "description": "Warns when a class directly extends the native Error class",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "extends_native_error.go"
+  },
+  {
+    "symbol": "NodeBuiltinImport",
+    "name": "nodeBuiltinImport",
+    "group": "effectNative",
+    "description": "Warns when importing Node.js built-in modules that have Effect-native counterparts",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "node_builtin_import.go"
+  },
+  {
+    "symbol": "ObsoleteMatchImport",
+    "name": "obsoleteMatchImport",
+    "group": "correctness",
+    "description": "Warns when importing @effect/match in projects targeting Effect v4, where Match is included directly in the effect package",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v4"
+    ],
+    "file": "obsolete_match_import.go"
+  },
+  {
+    "symbol": "ObsoleteSchemaImport",
+    "name": "obsoleteSchemaImport",
+    "group": "correctness",
+    "description": "Warns when importing @effect/schema in projects targeting Effect v4, where Schema is included directly in the effect package",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v4"
+    ],
+    "file": "obsolete_schema_import.go"
+  },
+  {
+    "symbol": "NewPromise",
+    "name": "newPromise",
+    "group": "effectNative",
+    "description": "Warns when constructing promises with new Promise instead of using Effect APIs",
+    "severity": "SeverityOff",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "new_promise.go"
+  },
+  {
+    "symbol": "OutdatedApi",
+    "name": "outdatedApi",
+    "group": "correctness",
+    "description": "Detects usage of APIs that have been removed or renamed in Effect v4",
+    "severity": "SeverityWarning",
+    "versions": [
+      "v4"
+    ],
+    "file": "outdated_api.go"
+  },
+  {
+    "symbol": "ServiceNotAsClass",
+    "name": "serviceNotAsClass",
+    "group": "style",
+    "description": "Warns when Context.Service is used as a variable instead of a class declaration",
+    "severity": "SeverityOff",
+    "versions": [
+      "v4"
+    ],
+    "file": "service_not_as_class.go"
+  },
+  {
+    "symbol": "PreferUnsafeConstructor",
+    "name": "preferUnsafeConstructor",
+    "group": "antipattern",
+    "description": "Suggests replacing Effect.runSync of a pure effect constructor with the synchronous *Unsafe variant exported by the same module",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "prefer_unsafe_constructor.go"
+  },
+  {
+    "symbol": "PreferTypedSchemaDecoder",
+    "name": "preferTypedSchemaDecoder",
+    "group": "style",
+    "description": "Suggests typed Schema decoders when the input is assignable to the schema's Encoded type",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "prefer_typed_schema_decoder.go"
+  },
+  {
+    "symbol": "AcquireReleaseDisposable",
+    "name": "acquireReleaseDisposable",
+    "group": "style",
+    "description": "Suggests Effect.acquireDisposable when Effect.acquireRelease only invokes the acquired resource's disposal protocol",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "acquire_release_disposable.go"
+  },
+  {
+    "symbol": "RaceFirstWithSleepToTimeout",
+    "name": "raceFirstWithSleepToTimeout",
+    "group": "style",
+    "description": "Suggests Effect.timeoutOrElse when Effect.raceFirst has exactly one sleep- or delay-based timer arm",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v4"
+    ],
+    "file": "race_first_with_sleep_to_timeout.go"
+  },
+  {
+    "symbol": "RunOfExitToRunExit",
+    "name": "runOfExitToRunExit",
+    "group": "style",
+    "description": "Suggests using Effect.runPromiseExit instead of passing Effect.exit to Effect.runPromise",
+    "severity": "SeveritySuggestion",
+    "versions": [
+      "v3",
+      "v4"
+    ],
+    "file": "run_of_exit_to_run_exit.go"
+  }
+]

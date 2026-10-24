@@ -1,0 +1,1559 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-24T04:46:38.417Z",
+  "candidate": {
+    "binarySha256": "2c2feb5d30a520f16c961ef082e3966e93ad054130288eca9d5e0de87cad10b0",
+    "sourceTreeSha256": "06e4eeaf405ed1491ebc5045ac16340799d07389f0bccc474c46e04e96d28401",
+    "sourceHashes": {
+      "Cargo.lock": "f68908af6c3dcc668b31e75d7a2c13b96b25e76cd47326fc3e8ca05f07451b3e",
+      "Cargo.toml": "d7cf80365ada48a965e7b0d6778e703ff283d495adb59f412ab26e8da6671bca",
+      "patches/checker-extensions.patch": "7b7631296edcb706826990bf90b1598aeca09c036c4f781f79e4ec1ddacc008f",
+      "rust-toolchain.toml": "21458be06bfd69c934b7312ef64ab8fdb715a7b74acb72f6e8465d2f55c5ca49",
+      "src/config.rs": "b398441c3aeca608673cc5a15b5575fa24fb491a2528fd30a22f2a7e4c379442",
+      "src/lib.rs": "488d847f42a792ea5995af1cb56eef5eaa290ff8e9ac50d2438c890b8b9de286",
+      "src/main.rs": "d412792c22d848a54cdb686e20e0685156ed3c7093d5bd5a3b2f65a3e5710db7",
+      "src/messages.json": "02868e320977195c04cec58b86c43f729670caff35fb594022b3d2c287cb1dbe",
+      "src/project.rs": "73faf083252716e33c346e01c2dedaf92443aa7042ffb1eaea0ac4dca9d6323c",
+      "src/registry.rs": "2ef0172e30c5b6b40c3e2dd6acb61386d072b93bb082537c6b0a23f76b20aa77",
+      "src/rules/basic.rs": "61e1b9dd5bc475ebfd285b7eab80cc2d44036588f84ac0126063a8eb88a18e97",
+      "src/rules/catches.rs": "462734a05c3684204386a67d1354f09739d3329de32f6e00569d12b09b1b0bc0",
+      "src/rules/channels.rs": "29bd5793e2abbb865c418f613f72e82dcefbd24552ec72b717e234aff650b2c6",
+      "src/rules/generators.rs": "f71f3fc7aa162bf2af905f05583aea03e5004341faf4c6f0d91a2d367f5517e2",
+      "src/rules/globals.rs": "0c0531f3c777a5c74a986fc7dd30dd07c7eac10754d5b4cd4592d42d45be6fcd",
+      "src/rules/mod.rs": "e460d729cf5d9a8436cdd23f53cdcfb6121867594d00f0bfac12ebb82b736dad",
+      "src/rules/schema_api.rs": "9e4f94234333b9a070a631c393e1d6abf0732cb8ef70b297c0e88662de314445",
+      "src/rules/schema_classes.rs": "4f957e4ff80198dae24d21a739085a20e76dd9506fee7a4defcb4ba9d2fb7364",
+      "src/rules/services.rs": "e6accfd8493a44254fb313901ebb38b27653ed83cb48e2389c29980051cdeb97",
+      "src/rules/stability_common.rs": "893b5bc960d0a866f29a4c53fb951db2c671941c9254dff13325577353cb09a7",
+      "src/rules/stability_leak.rs": "de92f347e1c517fac52332ab0062d7e4c4c6c44ff7571ecb17ed793e1fe5f90a",
+      "src/rules/stability_usage.rs": "a8432ff479e8717d37157488f282d947e72e34a1addb8b61ca54345ae6f210e8",
+      "src/rules/transforms.rs": "ade605dbbdde8de1b95690b84f13891638143b6505b9576148c38c0b9651ef68",
+      "src/semantic/context.rs": "0375e174a5bc3466fab1155c8b696168ec1a3892f9a910319d74ef6ca2370d4c",
+      "src/semantic/flow.rs": "6d4c24273057445fef5dbd9de9036d47feb9346882c77fdefa3cdde0617c6a45",
+      "src/semantic/mod.rs": "2dc35962b8b688c4bac96459d61a4a7176d97399d1943c472798c7bb2b10c0fa",
+      "src/semantic/symbols.rs": "d7b41ef83aa57e843044ac370ad8943d74ad0c764707b722633342cd1f7be8e4",
+      "src/semantic/types.rs": "7384a602c72e8ea5988c31009cdd23b2f9980cfc09807101ab6ce5baf4b8a7d0",
+      "upstream.json": "8da7c30da208693dff5c906dffa4c84bfe07a451fd544a56cde77be3cdfd885e"
+    },
+    "tsrs": {
+      "repository": "https://github.com/oxc-project/tsrs",
+      "revision": "8f135f106a637cf76f0395f146d0417f5287046e"
+    },
+    "effectTsgo": {
+      "repository": "https://github.com/Effect-TS/tsgo",
+      "revision": "8813161074039b67ddb8fe1847e8efa0d8ff1e24",
+      "license": "MIT",
+      "fixtureDirectories": [
+        "testdata/tests/effect-v3",
+        "testdata/tests/effect-v4"
+      ],
+      "preprocessing": [
+        "internal/effecttest/runner.go:parseTestUnits and RunEffectTest",
+        "internal/bundledeffect/effect.go:MountEffect and MountVitest",
+        "internal/rules/rules_json_test.go:parseTestConfig (preview options only)"
+      ]
+    }
+  },
+  "comparisons": {
+    "threeRules": {
+      "rawReport": "artifacts/performance/release2-three-host/report.json",
+      "passed": true,
+      "versions": {
+        "node": "v24.22.1",
+        "effect": "4.0.2",
+        "effectTsgo": "0.56.0",
+        "typescript": "7.1.0-beta"
+      },
+      "machine": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "release": "25.6.0",
+        "cpu": "Apple M4 Max",
+        "logicalCpus": 16,
+        "totalMemoryBytes": 137438953472
+      },
+      "workload": {
+        "modules": 120,
+        "sourceFiles": 121,
+        "sourceBytes": 93475,
+        "contentSha256": "1655710c6520cc81fb607b8ccc2bff69f9f6f06c0f291ab779d82960cb812bae",
+        "description": "Real Effect v4 typed values/functions, generators, Streams, aliases, pipes, assignments, async functions, and Unicode"
+      },
+      "measurementContext": "Parent is concurrently running the full parity matrix with 8 independent compiler processes; variants interleaved under this activity.",
+      "enabledRuleCount": 3,
+      "diagnostics": {
+        "total": 720,
+        "perRule": {
+          "floatingEffect": 240,
+          "asyncFunction": 120,
+          "unnecessaryPipe": 360
+        },
+        "typescript": 0
+      },
+      "binaries": {
+        "candidate": {
+          "sha256": "2c2feb5d30a520f16c961ef082e3966e93ad054130288eca9d5e0de87cad10b0",
+          "bytes": 18250864
+        },
+        "reference": {
+          "sha256": "8d741b80ffc2be26119626292883b576e12329a46c5dc6e2084ba229a1ebcc75",
+          "bytes": 27051746
+        },
+        "baseline": {
+          "sha256": "9887bf5b581b6809a188c2e18b84689ea63de82b261d7a94f4fac1e13bd82351",
+          "bytes": 17193744
+        }
+      },
+      "samplesPerVariant": 7,
+      "statistics": {
+        "baseline": {
+          "wallMs": {
+            "median": 111.073167,
+            "min": 94.141375,
+            "max": 122.332125,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 55787520,
+            "min": 55787520,
+            "max": 55787520,
+            "samples": 7
+          },
+          "effectMs": {
+            "median": 25.079335999999984,
+            "min": 21.973038999999993,
+            "max": 28.157748999999995,
+            "samples": 7
+          },
+          "phases": {
+            "configMs": {
+              "median": 0.9129999999999999,
+              "min": 0.6032919999999999,
+              "max": 1.4655,
+              "samples": 7
+            },
+            "programMs": {
+              "median": 53.990458,
+              "min": 46.097083,
+              "max": 60.005875,
+              "samples": 7
+            },
+            "typescriptMs": {
+              "median": 17.849583,
+              "min": 14.254042,
+              "max": 22.021167000000002,
+              "samples": 7
+            },
+            "effectMs": {
+              "median": 25.079335999999984,
+              "min": 21.973038999999993,
+              "max": 28.157748999999995,
+              "samples": 7
+            },
+            "totalMs": {
+              "median": 95.768375,
+              "min": 85.802083,
+              "max": 111.214708,
+              "samples": 7
+            }
+          }
+        },
+        "candidate": {
+          "wallMs": {
+            "median": 75.293125,
+            "min": 71.684791,
+            "max": 92.307,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 57016320,
+            "min": 57016320,
+            "max": 57016320,
+            "samples": 7
+          },
+          "effectMs": {
+            "median": 2.189574,
+            "min": 2.147954,
+            "max": 3.314214000000001,
+            "samples": 7
+          },
+          "phases": {
+            "configMs": {
+              "median": 0.920709,
+              "min": 0.6002919999999999,
+              "max": 1.544875,
+              "samples": 7
+            },
+            "programMs": {
+              "median": 48.645209,
+              "min": 46.119833,
+              "max": 64.06554100000001,
+              "samples": 7
+            },
+            "typescriptMs": {
+              "median": 14.664250000000001,
+              "min": 14.037833,
+              "max": 16.667333,
+              "samples": 7
+            },
+            "effectMs": {
+              "median": 2.189574,
+              "min": 2.147954,
+              "max": 3.314214000000001,
+              "samples": 7
+            },
+            "totalMs": {
+              "median": 66.850875,
+              "min": 64.246333,
+              "max": 82.366167,
+              "samples": 7
+            }
+          }
+        },
+        "reference": {
+          "wallMs": {
+            "median": 283.59075,
+            "min": 269.127375,
+            "max": 309.625834,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 140378112,
+            "min": 140263424,
+            "max": 141230080,
+            "samples": 7
+          },
+          "effectMs": null,
+          "phases": {
+            "configMs": null,
+            "programMs": null,
+            "typescriptMs": null,
+            "effectMs": null,
+            "totalMs": null
+          }
+        },
+        "compilerOnly": {
+          "wallMs": {
+            "median": 78.066625,
+            "min": 73.583625,
+            "max": 87.172875,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 55853056,
+            "min": 55853056,
+            "max": 55853056,
+            "samples": 7
+          },
+          "effectMs": {
+            "median": 0.494539,
+            "min": 0.49029100000000014,
+            "max": 0.49974900000000005,
+            "samples": 7
+          },
+          "phases": {
+            "configMs": {
+              "median": 1.0715,
+              "min": 0.740083,
+              "max": 1.859542,
+              "samples": 7
+            },
+            "programMs": {
+              "median": 51.416999999999994,
+              "min": 47.853458,
+              "max": 55.219958,
+              "samples": 7
+            },
+            "typescriptMs": {
+              "median": 15.12575,
+              "min": 14.503167000000001,
+              "max": 19.656208000000003,
+              "samples": 7
+            },
+            "effectMs": {
+              "median": 0.494539,
+              "min": 0.49029100000000014,
+              "max": 0.49974900000000005,
+              "samples": 7
+            },
+            "totalMs": {
+              "median": 69.274625,
+              "min": 65.08624999999999,
+              "max": 71.79712500000001,
+              "samples": 7
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "currentVsPreservedThreeRules": {
+          "matchedWork": true,
+          "wallMedianRatio": 0.677869615440064,
+          "wallMedianChangePercent": -32.213038455993605,
+          "rssMedianRatio": 1.0220264317180616
+        },
+        "candidateVsNativeReference": {
+          "matchedEffectOutput": true,
+          "matchedFullWork": false,
+          "commandWallMedianRatio": 0.26549922731964987,
+          "note": "The Rust command also performs complete ordinary TypeScript checking; this ratio is not an equal-work speedup claim."
+        }
+      },
+      "comparisonLimits": [
+        "Reference Effect CLI checks selected Effect diagnostics but does not run the same complete ordinary TypeScript diagnostic pass as the Rust candidate.",
+        "compilerOnly disables the Effect pass, so it is not an equal-result comparison.",
+        "Native-reference and candidate wall times describe these commands; their full workloads are not identical, so no equal-work speedup is claimed.",
+        "Preserved and current Rust three-rule binaries have matched selected diagnostics and ordinary TypeScript outputs; their wall times measure regression on the same compiler workload."
+      ],
+      "samples": [
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "baseline",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 115.10775,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.903291,
+            "programMs": 56.942750000000004,
+            "typescriptMs": 14.343791,
+            "effectMs": 27.19929,
+            "totalMs": 99.52066699999999
+          }
+        },
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "candidate",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 115.57725,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 1.886625,
+            "programMs": 62.802791,
+            "typescriptMs": 14.433958,
+            "effectMs": 2.210078000000001,
+            "totalMs": 81.640083
+          }
+        },
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "reference",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 305.643667,
+          "maxRssBytes": 139804672,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "compilerOnly",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 78.022167,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 1.034708,
+            "programMs": 49.756667,
+            "typescriptMs": 15.290166,
+            "effectMs": 0.492548,
+            "totalMs": 66.74187500000001
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "candidate",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 71.684791,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 0.920709,
+            "programMs": 46.119833,
+            "typescriptMs": 14.813082999999999,
+            "effectMs": 2.189574,
+            "totalMs": 64.246333
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "reference",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 282.963167,
+          "maxRssBytes": 140378112,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "compilerOnly",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 87.172875,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 1.156417,
+            "programMs": 50.288916,
+            "typescriptMs": 19.656208000000003,
+            "effectMs": 0.49545700000000026,
+            "totalMs": 71.79712500000001
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "baseline",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 118.601084,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.974417,
+            "programMs": 49.186959,
+            "typescriptMs": 18.365,
+            "effectMs": 27.526628000000002,
+            "totalMs": 96.159458
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "reference",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 309.625834,
+          "maxRssBytes": 141230080,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "compilerOnly",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 81.069625,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 0.9185000000000001,
+            "programMs": 55.219958,
+            "typescriptMs": 14.695584,
+            "effectMs": 0.494539,
+            "totalMs": 71.504334
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "baseline",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 102.007083,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 1.4655,
+            "programMs": 55.977959,
+            "typescriptMs": 14.254042,
+            "effectMs": 21.973038999999993,
+            "totalMs": 93.756333
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "candidate",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 92.307,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 0.758333,
+            "programMs": 64.06554100000001,
+            "typescriptMs": 14.037833,
+            "effectMs": 3.314214000000001,
+            "totalMs": 82.366167
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "compilerOnly",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 78.066625,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 1.859542,
+            "programMs": 51.416999999999994,
+            "typescriptMs": 15.33925,
+            "effectMs": 0.493829,
+            "totalMs": 69.274625
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "baseline",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 94.141375,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.649625,
+            "programMs": 46.097083,
+            "typescriptMs": 14.277666,
+            "effectMs": 24.672120000000003,
+            "totalMs": 85.802083
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "candidate",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 75.293125,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 1.055792,
+            "programMs": 48.645209,
+            "typescriptMs": 14.732541999999999,
+            "effectMs": 2.2210880000000004,
+            "totalMs": 66.850875
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "reference",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 283.59075,
+          "maxRssBytes": 140378112,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "baseline",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 111.073167,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 1.295417,
+            "programMs": 57.521542000000004,
+            "typescriptMs": 15.03575,
+            "effectMs": 25.079335999999984,
+            "totalMs": 99.04075
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "candidate",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 72.34375,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 0.6002919999999999,
+            "programMs": 47.357084,
+            "typescriptMs": 14.664250000000001,
+            "effectMs": 2.147954,
+            "totalMs": 64.965541
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "reference",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 269.127375,
+          "maxRssBytes": 140263424,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "compilerOnly",
+          "order": [
+            "baseline",
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 73.583625,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 0.740083,
+            "programMs": 48.778124999999996,
+            "typescriptMs": 15.12575,
+            "effectMs": 0.49974900000000005,
+            "totalMs": 65.35312499999999
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "candidate",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 77.153584,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 1.05575,
+            "programMs": 50.823208,
+            "typescriptMs": 14.531791,
+            "effectMs": 2.1545379999999996,
+            "totalMs": 68.77345899999999
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "reference",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 288.738,
+          "maxRssBytes": 140443648,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "compilerOnly",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 76.079875,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 1.0715,
+            "programMs": 51.554207999999996,
+            "typescriptMs": 14.597458000000001,
+            "effectMs": 0.49171700000000024,
+            "totalMs": 67.938917
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "baseline",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly",
+            "baseline"
+          ],
+          "elapsedMs": 117.570875,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.7151660000000001,
+            "programMs": 53.990458,
+            "typescriptMs": 17.849583,
+            "effectMs": 22.96367500000001,
+            "totalMs": 95.651292
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "reference",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 270.326334,
+          "maxRssBytes": 140361728,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "compilerOnly",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 79.385667,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 1.2201250000000001,
+            "programMs": 53.982166,
+            "typescriptMs": 14.503167000000001,
+            "effectMs": 0.49029100000000014,
+            "totalMs": 70.385
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "baseline",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 105.388417,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.6032919999999999,
+            "programMs": 49.686791,
+            "typescriptMs": 17.898125,
+            "effectMs": 27.461543000000002,
+            "totalMs": 95.768375
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "candidate",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "baseline",
+            "candidate"
+          ],
+          "elapsedMs": 72.059583,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 0.784208,
+            "programMs": 46.705542,
+            "typescriptMs": 14.552582999999998,
+            "effectMs": 2.264453999999999,
+            "totalMs": 64.526375
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "compilerOnly",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 74.133,
+          "maxRssBytes": 55853056,
+          "status": 0,
+          "timings": {
+            "configMs": 0.786083,
+            "programMs": 47.853458,
+            "typescriptMs": 15.790833000000001,
+            "effectMs": 0.49908700000000006,
+            "totalMs": 65.08624999999999
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "baseline",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 122.332125,
+          "maxRssBytes": 55787520,
+          "status": 1,
+          "timings": {
+            "configMs": 0.9129999999999999,
+            "programMs": 60.005875,
+            "typescriptMs": 22.021167000000002,
+            "effectMs": 28.157748999999995,
+            "totalMs": 111.214708
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "candidate",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 83.824667,
+          "maxRssBytes": 57016320,
+          "status": 1,
+          "timings": {
+            "configMs": 1.544875,
+            "programMs": 52.991542,
+            "typescriptMs": 16.667333,
+            "effectMs": 2.164666000000001,
+            "totalMs": 73.57025
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "reference",
+          "order": [
+            "compilerOnly",
+            "baseline",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 293.133917,
+          "maxRssBytes": 140443648,
+          "status": 1,
+          "timings": null
+        }
+      ]
+    },
+    "allRules": {
+      "rawReport": "artifacts/performance/release2-all-host/report.json",
+      "passed": true,
+      "versions": {
+        "node": "v24.22.1",
+        "effect": "4.0.2",
+        "effectTsgo": "0.56.0",
+        "typescript": "7.1.0-beta"
+      },
+      "machine": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "release": "25.6.0",
+        "cpu": "Apple M4 Max",
+        "logicalCpus": 16,
+        "totalMemoryBytes": 137438953472
+      },
+      "workload": {
+        "modules": 120,
+        "sourceFiles": 121,
+        "sourceBytes": 93475,
+        "contentSha256": "1655710c6520cc81fb607b8ccc2bff69f9f6f06c0f291ab779d82960cb812bae",
+        "description": "Real Effect v4 typed values/functions, generators, Streams, aliases, pipes, assignments, async functions, and Unicode"
+      },
+      "measurementContext": "Parent is concurrently running the full parity matrix with 8 independent compiler processes; variants interleaved under this activity.",
+      "enabledRuleCount": 130,
+      "diagnostics": {
+        "total": 726,
+        "perRule": {
+          "apiStabilityLeak": 6,
+          "floatingEffect": 240,
+          "unnecessaryPipe": 360,
+          "asyncFunction": 120
+        },
+        "typescript": 0
+      },
+      "binaries": {
+        "candidate": {
+          "sha256": "2c2feb5d30a520f16c961ef082e3966e93ad054130288eca9d5e0de87cad10b0",
+          "bytes": 18250864
+        },
+        "reference": {
+          "sha256": "8d741b80ffc2be26119626292883b576e12329a46c5dc6e2084ba229a1ebcc75",
+          "bytes": 27051746
+        }
+      },
+      "samplesPerVariant": 7,
+      "statistics": {
+        "candidate": {
+          "wallMs": {
+            "median": 194.669667,
+            "min": 191.811167,
+            "max": 220.768209,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 80756736,
+            "min": 80756736,
+            "max": 80756736,
+            "samples": 7
+          },
+          "effectMs": {
+            "median": 120.50999799999998,
+            "min": 117.15558699999997,
+            "max": 131.820959,
+            "samples": 7
+          },
+          "phases": {
+            "configMs": {
+              "median": 0.899917,
+              "min": 0.597917,
+              "max": 1.5375,
+              "samples": 7
+            },
+            "programMs": {
+              "median": 49.176708,
+              "min": 43.738458,
+              "max": 61.074999999999996,
+              "samples": 7
+            },
+            "typescriptMs": {
+              "median": 15.599959,
+              "min": 14.498209,
+              "max": 20.65875,
+              "samples": 7
+            },
+            "effectMs": {
+              "median": 120.50999799999998,
+              "min": 117.15558699999997,
+              "max": 131.820959,
+              "samples": 7
+            },
+            "totalMs": {
+              "median": 186.479208,
+              "min": 183.330625,
+              "max": 209.809542,
+              "samples": 7
+            }
+          }
+        },
+        "reference": {
+          "wallMs": {
+            "median": 264.720708,
+            "min": 257.4125,
+            "max": 273.780125,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 140673024,
+            "min": 140083200,
+            "max": 140951552,
+            "samples": 7
+          },
+          "effectMs": null,
+          "phases": {
+            "configMs": null,
+            "programMs": null,
+            "typescriptMs": null,
+            "effectMs": null,
+            "totalMs": null
+          }
+        },
+        "compilerOnly": {
+          "wallMs": {
+            "median": 77.939916,
+            "min": 63.75525,
+            "max": 99.39225,
+            "samples": 7
+          },
+          "maxRssBytes": {
+            "median": 55902208,
+            "min": 55902208,
+            "max": 55902208,
+            "samples": 7
+          },
+          "effectMs": {
+            "median": 0.5098349999999997,
+            "min": 0.5074939999999997,
+            "max": 0.5971229999999997,
+            "samples": 7
+          },
+          "phases": {
+            "configMs": {
+              "median": 0.914917,
+              "min": 0.649875,
+              "max": 1.233708,
+              "samples": 7
+            },
+            "programMs": {
+              "median": 52.7595,
+              "min": 39.446042,
+              "max": 72.54529099999999,
+              "samples": 7
+            },
+            "typescriptMs": {
+              "median": 14.852583000000001,
+              "min": 14.6805,
+              "max": 16.481625,
+              "samples": 7
+            },
+            "effectMs": {
+              "median": 0.5098349999999997,
+              "min": 0.5074939999999997,
+              "max": 0.5971229999999997,
+              "samples": 7
+            },
+            "totalMs": {
+              "median": 69.22416700000001,
+              "min": 55.911207999999995,
+              "max": 88.983666,
+              "samples": 7
+            }
+          }
+        }
+      },
+      "comparisons": {
+        "candidateVsNativeReference": {
+          "matchedEffectOutput": true,
+          "matchedFullWork": false,
+          "commandWallMedianRatio": 0.735377554973901,
+          "note": "The Rust command also performs complete ordinary TypeScript checking; this ratio is not an equal-work speedup claim."
+        }
+      },
+      "comparisonLimits": [
+        "Reference Effect CLI checks selected Effect diagnostics but does not run the same complete ordinary TypeScript diagnostic pass as the Rust candidate.",
+        "compilerOnly disables the Effect pass, so it is not an equal-result comparison.",
+        "Native-reference and candidate wall times describe these commands; their full workloads are not identical, so no equal-work speedup is claimed."
+      ],
+      "samples": [
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "candidate",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 195.961916,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.891417,
+            "programMs": 48.241125000000004,
+            "typescriptMs": 14.528833,
+            "effectMs": 119.98809199999994,
+            "totalMs": 183.934416
+          }
+        },
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "reference",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 261.550541,
+          "maxRssBytes": 140689408,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "warmup",
+          "index": 1,
+          "variant": "compilerOnly",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 74.773208,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 0.937833,
+            "programMs": 47.557,
+            "typescriptMs": 14.435709,
+            "effectMs": 0.5212109999999992,
+            "totalMs": 63.656333
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "reference",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 267.806334,
+          "maxRssBytes": 140525568,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "compilerOnly",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 98.2965,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 0.858416,
+            "programMs": 72.54529099999999,
+            "typescriptMs": 14.867292,
+            "effectMs": 0.5125059999999995,
+            "totalMs": 88.983666
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 1,
+          "variant": "candidate",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 220.768209,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 1.5375,
+            "programMs": 61.074999999999996,
+            "typescriptMs": 17.411541999999997,
+            "effectMs": 129.35991299999998,
+            "totalMs": 209.809542
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "compilerOnly",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 99.39225,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 1.2175,
+            "programMs": 69.58770799999999,
+            "typescriptMs": 16.481625,
+            "effectMs": 0.5084169999999996,
+            "totalMs": 88.053292
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "candidate",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 214.233292,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.899917,
+            "programMs": 49.296458,
+            "typescriptMs": 14.593791999999999,
+            "effectMs": 131.820959,
+            "totalMs": 196.913542
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 2,
+          "variant": "reference",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 263.21075,
+          "maxRssBytes": 140902400,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "candidate",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 194.669667,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.6282920000000001,
+            "programMs": 43.738458,
+            "typescriptMs": 15.599959,
+            "effectMs": 126.23912499999994,
+            "totalMs": 186.479208
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "reference",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 270.7455,
+          "maxRssBytes": 140771328,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 3,
+          "variant": "compilerOnly",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 69.756916,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 1.233708,
+            "programMs": 44.644125,
+            "typescriptMs": 14.6805,
+            "effectMs": 0.5085429999999995,
+            "totalMs": 61.278583999999995
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "reference",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 264.720708,
+          "maxRssBytes": 140083200,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "compilerOnly",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 73.182666,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 0.649875,
+            "programMs": 48.716750000000005,
+            "typescriptMs": 14.852583000000001,
+            "effectMs": 0.5115429999999994,
+            "totalMs": 64.888917
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 4,
+          "variant": "candidate",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 191.811167,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.597917,
+            "programMs": 44.663208000000004,
+            "typescriptMs": 20.65875,
+            "effectMs": 117.15558699999997,
+            "totalMs": 183.330625
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "compilerOnly",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 81.052208,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 1.118875,
+            "programMs": 55.23325,
+            "typescriptMs": 14.750875,
+            "effectMs": 0.5971229999999997,
+            "totalMs": 71.91491699999999
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "candidate",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 194.434042,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.848625,
+            "programMs": 48.799917,
+            "typescriptMs": 14.498209,
+            "effectMs": 120.50999799999998,
+            "totalMs": 184.92175
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 5,
+          "variant": "reference",
+          "order": [
+            "compilerOnly",
+            "candidate",
+            "reference"
+          ],
+          "elapsedMs": 273.780125,
+          "maxRssBytes": 140509184,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "candidate",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 196.96625,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.980208,
+            "programMs": 49.395042000000004,
+            "typescriptMs": 16.792916,
+            "effectMs": 120.22832699999998,
+            "totalMs": 187.71025
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "reference",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 257.4125,
+          "maxRssBytes": 140951552,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 6,
+          "variant": "compilerOnly",
+          "order": [
+            "candidate",
+            "reference",
+            "compilerOnly"
+          ],
+          "elapsedMs": 77.939916,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 0.914917,
+            "programMs": 52.7595,
+            "typescriptMs": 14.841042,
+            "effectMs": 0.5098349999999997,
+            "totalMs": 69.22416700000001
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "reference",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 262.340333,
+          "maxRssBytes": 140673024,
+          "status": 1,
+          "timings": null
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "compilerOnly",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 63.75525,
+          "maxRssBytes": 55902208,
+          "status": 0,
+          "timings": {
+            "configMs": 0.650625,
+            "programMs": 39.446042,
+            "typescriptMs": 15.136375000000001,
+            "effectMs": 0.5074939999999997,
+            "totalMs": 55.911207999999995
+          }
+        },
+        {
+          "phase": "sample",
+          "index": 7,
+          "variant": "candidate",
+          "order": [
+            "reference",
+            "compilerOnly",
+            "candidate"
+          ],
+          "elapsedMs": 192.553375,
+          "maxRssBytes": 80756736,
+          "status": 1,
+          "timings": {
+            "configMs": 0.917417,
+            "programMs": 49.176708,
+            "typescriptMs": 14.545167,
+            "effectMs": 118.88399700000006,
+            "totalMs": 183.81245900000002
+          }
+        }
+      ]
+    }
+  }
+}

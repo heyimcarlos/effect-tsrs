@@ -1,0 +1,37 @@
+{
+  "repository": "https://github.com/Effect-TS/tsgo",
+  "revision": "8813161074039b67ddb8fe1847e8efa0d8ff1e24",
+  "license": "MIT",
+  "copiedFiles": [
+    {
+      "source": "testdata/tests/effect-v4/floatingEffect.ts",
+      "destination": "fixtures/upstream/floatingEffect.ts",
+      "sha256": "f99dd730ac016d698719bbb4d55598a38b5c8196e0a124cd51a207d169a6919c"
+    },
+    {
+      "source": "testdata/tests/effect-v4/floatingEffect_subtypes.ts",
+      "destination": "fixtures/upstream/floatingEffect_subtypes.ts",
+      "sha256": "a73cda923692f40c49012df0bdb8980959d60aafd428db03a5d2819c23e3ca12"
+    },
+    {
+      "source": "testdata/tests/effect-v4/floatingEffect_stream.ts",
+      "destination": "fixtures/upstream/floatingEffect_stream.ts",
+      "sha256": "755eb5da8626f2cd69701d4b2181a4af84ddee06409cd36ae6a48f3d6a008494"
+    },
+    {
+      "source": "testdata/tests/effect-v4/asyncFunction.ts",
+      "destination": "fixtures/upstream/asyncFunction.ts",
+      "sha256": "01a7a83266579e5888e2949ad718b53917696fe1eab0696d0f7d369efc2fdea3"
+    },
+    {
+      "source": "testdata/tests/effect-v4/unnecessaryPipe.ts",
+      "destination": "fixtures/upstream/unnecessaryPipe.ts",
+      "sha256": "7501c50fe459ca96f41a3e8361ef30b27dbbdbd11e5032a91fc9dd95254615db"
+    },
+    {
+      "source": "testdata/tests/effect-v4/unnecessaryPipe_namespace.ts",
+      "destination": "fixtures/upstream/unnecessaryPipe_namespace.ts",
+      "sha256": "b7c2483c53b74e6f54de1cc813f700bdf2c6cb141210617313005c1a6a5ef4ec"
+    }
+  ]
+}

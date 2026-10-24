@@ -1,0 +1,304 @@
+use std::sync::Arc;
+use std::time::Instant;
+
+use tsrs_ast::SourceFile;
+use tsrs_compiler::{
+    ProgramOptions, diagnosticwriter, new_compiler_host, new_program,
+    sort_and_deduplicate_diagnostics,
+};
+use tsrs_core::{P, TextRange, Tristate, context::Context};
+use tsrs_tsoptions::{ParseConfigHost, get_parsed_command_line_of_config_file};
+use tsrs_vfs::{FS, bundled, osvfs};
+
+use crate::{
+    CheckOptions, CheckResult, CompilerDiagnostic, Diagnostic, Location, RelatedDiagnostic,
+    Severity, config as effect_config, rules,
+};
+
+struct ConfigHost {
+    cwd: String,
+    fs: Arc<dyn FS>,
+}
+
+impl ParseConfigHost for ConfigHost {
+    fn fs(&self) -> &dyn FS {
+        &*self.fs
+    }
+
+    fn get_current_directory(&self) -> &str {
+        &self.cwd
+    }
+}
+
+pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
+    let total_start = Instant::now();
+    let cwd = std::env::current_dir().map_err(|e| e.to_string())?;
+    let mut path = cwd.join(&options.project);
+    if path.is_dir() {
+        path.push("tsconfig.json");
+    }
+    let cwd = cwd.to_string_lossy().into_owned();
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
+    let host = ConfigHost {
+        cwd: cwd.clone(),
+        fs: Arc::clone(&fs),
+    };
+    let mut result = CheckResult::default();
+    let start = Instant::now();
+    let (config, fatal) =
+        get_parsed_command_line_of_config_file(&path.to_string_lossy(), None, None, &host, None);
+    result.timings.config_ms = start.elapsed().as_secs_f64() * 1000.0;
+    result
+        .typescript_diagnostics
+        .extend(fatal.into_iter().map(compiler_diagnostic));
+    let Some(config) = config else {
+        result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
+        return Ok(result);
+    };
+    let configuration = effect_config::resolve(
+        &config,
+        options.lspconfig.as_deref(),
+        options.rules.as_deref(),
+    )?;
+    result.timings.config_ms = start.elapsed().as_secs_f64() * 1000.0;
+    result
+        .typescript_diagnostics
+        .extend(configuration.diagnostics().iter().map(|diagnostic| {
+            CompilerDiagnostic {
+                code: diagnostic.code,
+                severity: diagnostic.severity,
+                message: diagnostic.message.clone(),
+                location: diagnostic
+                    .file
+                    .zip(diagnostic.range)
+                    .map(|(file, range)| location(file, range)),
+            }
+        }));
+
+    let start = Instant::now();
+    let compiler_host = new_compiler_host(&cwd, fs, &bundled::default_lib_path(), None, None, None);
+    let mut program_options = ProgramOptions::new(P::new(config), compiler_host);
+    program_options.single_threaded = Tristate::True;
+    program_options.canonical_diagnostics = false;
+    // Keep the AST and checker alive for the Effect pass after checking.
+    // ProgramOptions::new already disables leaf reclamation and checker recycling.
+    let program = new_program(program_options);
+    result.timings.program_ms = start.elapsed().as_secs_f64() * 1000.0;
+    let context = Context::background();
+
+    let start = Instant::now();
+    let mut compiler_errors = program.get_config_file_parsing_diagnostics();
+    compiler_errors.extend(program.get_syntactic_diagnostics(&context, None));
+    compiler_errors.extend(program.get_global_diagnostics(&context));
+    compiler_errors.extend(program.get_program_diagnostics());
+    compiler_errors.extend(program.get_semantic_diagnostics(&context, None));
+    result.timings.typescript_ms += start.elapsed().as_secs_f64() * 1000.0;
+
+    let mut effect_version = None;
+    let mut packages = crate::semantic::PackageCache::default();
+
+    for &file in program.source_files() {
+        if file.is_declaration_file() || program.is_source_file_from_external_library(file) {
+            continue;
+        }
+        result.summary.files_checked += 1;
+        let start = Instant::now();
+        let mut file_config = configuration.for_file(file);
+        if !file_config.enabled.is_empty() {
+            let effect_version =
+                effect_version.get_or_insert_with(|| detect_effect_version(program, &mut packages));
+            // Checker acquisition is exclusive. All program diagnostic collection
+            // is completed above, before holding any file's checker guard.
+            let mut checker = program.get_type_checker_for_file(&context, file);
+            for found in rules::analyze_file(
+                &mut checker,
+                program,
+                file,
+                &file_config.enabled,
+                &file_config.options,
+                effect_version,
+                &mut packages,
+            ) {
+                let Some(severity) = file_config.severity(
+                    found.rule,
+                    found
+                        .range
+                        .source_pos()
+                        .expect("diagnostic source position"),
+                ) else {
+                    continue;
+                };
+                result.diagnostics.push(Diagnostic {
+                    location: location(found.file, found.range),
+                    severity,
+                    code: found.code,
+                    name: found.rule.name(),
+                    message: found.message,
+                    related_information: found
+                        .related
+                        .into_iter()
+                        .map(|related| RelatedDiagnostic {
+                            location: location(related.file, related.range),
+                            code: related.code,
+                            message: related.message,
+                        })
+                        .collect(),
+                });
+            }
+        }
+        for diagnostic in file_config.finish() {
+            result.diagnostics.push(Diagnostic {
+                location: location(
+                    diagnostic.file.expect("directive source file"),
+                    diagnostic.range.expect("directive source range"),
+                ),
+                severity: diagnostic.severity,
+                code: diagnostic.code,
+                name: diagnostic.name,
+                message: diagnostic.message,
+                related_information: Vec::new(),
+            });
+        }
+        result.timings.effect_ms += start.elapsed().as_secs_f64() * 1000.0;
+    }
+    result.typescript_diagnostics.extend(
+        sort_and_deduplicate_diagnostics(&compiler_errors)
+            .into_iter()
+            .map(compiler_diagnostic),
+    );
+    result
+        .diagnostics
+        .sort_by(|a, b| diagnostic_key(a).cmp(&diagnostic_key(b)));
+    // As in the compiler, equal primary diagnostics merge their related
+    // information before the final summary is counted.
+    result.diagnostics.dedup_by(|later, earlier| {
+        if diagnostic_key(later) != diagnostic_key(earlier) {
+            return false;
+        }
+        earlier
+            .related_information
+            .append(&mut later.related_information);
+        earlier.related_information.sort_by(|a, b| {
+            (
+                &a.location.file,
+                a.location.start,
+                a.location.length,
+                a.code,
+                &a.message,
+            )
+                .cmp(&(
+                    &b.location.file,
+                    b.location.start,
+                    b.location.length,
+                    b.code,
+                    &b.message,
+                ))
+        });
+        earlier.related_information.dedup();
+        true
+    });
+    for diagnostic in &result.diagnostics {
+        match diagnostic.severity {
+            Severity::Error => result.summary.errors += 1,
+            Severity::Warning => result.summary.warnings += 1,
+            Severity::Message => result.summary.messages += 1,
+        }
+    }
+    result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
+    Ok(result)
+}
+
+fn diagnostic_key(d: &Diagnostic) -> (&str, usize, usize, i32, &str, &str, &str) {
+    (
+        &d.location.file,
+        d.location.start,
+        d.location.length,
+        d.code,
+        d.severity.as_str(),
+        d.name,
+        &d.message,
+    )
+}
+
+/// Preserve raw and exact detection; helpers choose the upstream fallback.
+fn detect_effect_version(
+    program: &tsrs_compiler::Program,
+    packages: &mut crate::semantic::PackageCache,
+) -> crate::EffectVersion {
+    let mut detected = None;
+    let mut exact = None;
+    let mut conflicting_versions = false;
+    for &file in program.source_files() {
+        let Some(package) = packages.get(program, file) else {
+            continue;
+        };
+        if package["name"] != "effect" {
+            continue;
+        }
+        let major = match package["version"]
+            .as_str()
+            .and_then(|version| version.as_bytes().first())
+        {
+            Some(b'3') => 3,
+            Some(b'4') => 4,
+            _ => 0,
+        };
+        detected = Some(if detected.is_some_and(|version| version != major) {
+            0
+        } else {
+            major
+        });
+        if let Some(version) = package["version"].as_str() {
+            if exact.as_deref().is_some_and(|previous| previous != version) {
+                conflicting_versions = true;
+            } else {
+                exact = Some(version.to_string());
+            }
+        }
+    }
+    crate::EffectVersion {
+        major: detected.unwrap_or(0),
+        exact: if conflicting_versions { None } else { exact },
+    }
+}
+
+fn location(file: P<SourceFile>, range: TextRange) -> Location {
+    let start = range
+        .source_pos()
+        .expect("diagnostics have source positions");
+    let end = range
+        .source_end()
+        .expect("diagnostics have source positions");
+    let (line, column) =
+        tsrs_scanner::get_ecma_line_and_utf16_character_of_position(file.get(), start);
+    let (end_line, end_column) =
+        tsrs_scanner::get_ecma_line_and_utf16_character_of_position(file.get(), end);
+    let text = file.text();
+    Location {
+        file: file.file_name().to_string(),
+        start: text[..start as usize].encode_utf16().count(),
+        length: text[start as usize..end as usize].encode_utf16().count(),
+        line: line + 1,
+        column: column as usize + 1,
+        end_line: end_line + 1,
+        end_column: end_column as usize + 1,
+    }
+}
+
+fn compiler_diagnostic(d: P<tsrs_ast::Diagnostic>) -> CompilerDiagnostic {
+    CompilerDiagnostic {
+        code: d.code(),
+        severity: match d.category() {
+            tsrs_diagnostics::Category::Error => Severity::Error,
+            tsrs_diagnostics::Category::Warning => Severity::Warning,
+            tsrs_diagnostics::Category::Suggestion | tsrs_diagnostics::Category::Message => {
+                Severity::Message
+            }
+        },
+        message: diagnosticwriter::flatten_diagnostic_message(d, "\n"),
+        location: d
+            .file()
+            .zip(d.loc())
+            .map(|(file, range)| location(file, range)),
+    }
+}

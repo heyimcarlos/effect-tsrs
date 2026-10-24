@@ -1,0 +1,540 @@
+diff --git a/crates/tsrs_checker/src/checker.rs b/crates/tsrs_checker/src/checker.rs
+index b56fb95..2efa7f9 100644
+--- a/crates/tsrs_checker/src/checker.rs
++++ b/crates/tsrs_checker/src/checker.rs
+@@ -1366,6 +1366,8 @@ pub struct Checker {
+     /// The last `program.get_emit_module_format_of_file` answer (`emit_module_format_of_file`).
+     pub(crate) last_emit_module_format: Option<(P<SourceFile>, ModuleKind)>,
+     pub context_free_types: FxHashMap<P<Node>, P<Type>>,
++    pub(crate) checked_expression_types: FxHashMap<P<Node>, P<Type>>,
++    pub(crate) object_literal_contextual_types: FxHashMap<P<Node>, Option<P<Type>>>,
+     pub any_type: P<Type>,
+     pub auto_type: P<Type>,
+     pub wildcard_type: P<Type>,
+@@ -1837,6 +1839,8 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
+         members_resolving: 0,
+         last_emit_module_format: None,
+         context_free_types: FxHashMap::default(),
++        checked_expression_types: FxHashMap::default(),
++        object_literal_contextual_types: FxHashMap::default(),
+         any_type: dummy_type,
+         auto_type: dummy_type,
+         wildcard_type: dummy_type,
+@@ -2382,6 +2386,8 @@ impl Checker {
+             members_reset_epoch: 0,
+             members_resolving: 0,
+             context_free_types: base.context_free_types.clone(),
++            checked_expression_types: base.checked_expression_types.clone(),
++            object_literal_contextual_types: base.object_literal_contextual_types.clone(),
+             any_type: base.any_type,
+             auto_type: base.auto_type,
+             wildcard_type: base.wildcard_type,
+diff --git a/crates/tsrs_checker/src/checker_02.rs b/crates/tsrs_checker/src/checker_02.rs
+index 4bc86a6..a30d1c6 100644
+--- a/crates/tsrs_checker/src/checker_02.rs
++++ b/crates/tsrs_checker/src/checker_02.rs
+@@ -133,6 +133,7 @@ impl Checker {
+         self.ctx = Some(ctx.clone());
+         let links = self.source_file_links.get(source_file);
+         if !links.type_checked.get() {
++            links.relation_errors.borrow_mut().clear();
+             // tsrs-only: TSRS_TRACE_UNION_REDUCTION (uniontrace.rs) prints each checker's file order.
+             if crate::uniontrace::enabled() {
+                 crate::uniontrace::report_check_file(self, source_file, None);
+diff --git a/crates/tsrs_checker/src/checker_04.rs b/crates/tsrs_checker/src/checker_04.rs
+index 75428d7..14ef793 100644
+--- a/crates/tsrs_checker/src/checker_04.rs
++++ b/crates/tsrs_checker/src/checker_04.rs
+@@ -2049,6 +2049,9 @@ impl Checker {
+             self.check_const_enum_access(node, t);
+         }
+         self.current_node = save_current_node;
++        if self.checking_file.is_some() && (check_mode & !CheckMode::Contextual).is_empty() {
++            self.checked_expression_types.insert(node, t);
++        }
+         self.end_instantiation_count();
+         t
+     }
+diff --git a/crates/tsrs_checker/src/exports.rs b/crates/tsrs_checker/src/exports.rs
+index 166112b..421291f 100644
+--- a/crates/tsrs_checker/src/exports.rs
++++ b/crates/tsrs_checker/src/exports.rs
+@@ -2,6 +2,141 @@ use crate::*;
+ use tsrs_ast as ast;
+ 
+ impl Checker {
++    pub fn get_base_types_of_reference_exported(&mut self, t: P<Type>) -> Vec<P<Type>> {
++        if !t.object_flags().intersects(ObjectFlags::Reference) {
++            return self.get_base_types(t).to_vec();
++        }
++        let Some(target) = t.target() else {
++            return Vec::new();
++        };
++        if !target.object_flags().intersects(ObjectFlags::ClassOrInterface) {
++            return self.get_base_types(target).to_vec();
++        }
++        let bases = self.get_base_types(target);
++        let type_parameters = target.as_interface_type().type_parameters();
++        let type_arguments = self.get_type_arguments(t);
++        let mapper = (!type_parameters.is_empty()).then(|| {
++            new_type_mapper(type_parameters, alloc_slice(&type_arguments[..type_parameters.len()]))
++        });
++        let this_argument = if type_arguments.len() > type_parameters.len() {
++            type_arguments.last().copied()
++        } else {
++            None
++        };
++        bases
++            .iter()
++            .map(|&base| {
++                let instantiated = self.instantiate_type(base, mapper);
++                if this_argument.is_some() {
++                    self.get_type_with_this_argument(instantiated, this_argument, false)
++                } else {
++                    instantiated
++                }
++            })
++            .collect()
++    }
++
++    pub fn is_past_last_assignment_exported(&mut self, symbol: P<Symbol>, node: P<Node>) -> bool {
++        self.is_past_last_assignment(symbol, Some(node))
++    }
++
++    pub fn check_expression_with_contextual_type_exported(
++        &mut self,
++        node: P<Node>,
++        contextual_type: P<Type>,
++        inference_context: Option<P<InferenceContext>>,
++        check_mode: CheckMode,
++    ) -> P<Type> {
++        self.check_expression_with_contextual_type(
++            node,
++            contextual_type,
++            inference_context,
++            check_mode,
++        )
++    }
++
++    pub fn new_function_type_exported(
++        &mut self,
++        type_parameters: &[P<Type>],
++        this_parameter: Option<P<Symbol>>,
++        parameters: &[P<Symbol>],
++        return_type: P<Type>,
++    ) -> P<Type> {
++        self.new_function_type(type_parameters, this_parameter, parameters, return_type)
++    }
++
++    pub fn is_symbol_assigned_exported(&mut self, symbol: P<Symbol>) -> bool {
++        self.is_symbol_assigned(symbol)
++    }
++
++    pub fn evaluate_entity_exported(
++        &mut self,
++        expr: P<Node>,
++        location: Option<P<Node>>,
++    ) -> evaluator::Result {
++        self.evaluate_entity(expr, location)
++    }
++
++    pub fn is_constant_variable_exported(&mut self, symbol: P<Symbol>) -> bool {
++        self.is_constant_variable(symbol)
++    }
++
++    pub fn is_block_scoped_name_declared_before_use_exported(
++        &mut self,
++        declaration: P<Node>,
++        usage: P<Node>,
++    ) -> bool {
++        self.is_block_scoped_name_declared_before_use(declaration, usage)
++    }
++
++    /// Returns the relation failures recorded by the checker while checking this file.
++    pub fn get_relation_errors(&mut self, source_file: P<SourceFile>) -> Vec<RelationError> {
++        if !self.source_file_links.get(source_file).type_checked.get() {
++            let ctx = self.ctx.clone().unwrap_or_else(tsrs_core::context::Context::background);
++            self.get_diagnostics_exported(&ctx, source_file);
++        }
++        self.source_file_links.get(source_file).relation_errors.borrow().clone()
++    }
++
++    /// Reads a final expression type from a completed file check without evaluating the expression.
++    pub fn get_checked_type_of_expression(&mut self, mut node: P<Node>) -> Option<P<Type>> {
++        if !ast::is_expression_node(node) || ast::is_part_of_type_node(node) {
++            return None;
++        }
++        if ast::is_right_side_of_qualified_name_or_property_access(node) {
++            node = node.parent()?;
++        }
++        let source_file = ast::get_source_file_of_node(node)?;
++        if !self.source_file_links.try_get(source_file)?.type_checked.get() {
++            return None;
++        }
++        let t = self.checked_expression_types.get(&node).copied().or_else(|| {
++            self.type_node_links.try_get(node).and_then(|links| links.resolved_type.get())
++        })?;
++        Some(self.get_regular_type_of_literal_type(t))
++    }
++
++    /// Caches the ordinary contextual-type query for an object literal, including an absent result.
++    pub fn get_cached_object_literal_contextual_type(&mut self, node: P<Node>) -> Option<P<Type>> {
++        if !ast::is_object_literal_expression(node) {
++            return None;
++        }
++        if let Some(t) = self.object_literal_contextual_types.get(&node) {
++            return *t;
++        }
++        let t = self.get_contextual_type(node, ContextFlags::None);
++        self.object_literal_contextual_types.insert(node, t);
++        t
++    }
++
++    pub fn get_type_arguments_for_resolved_signature(&mut self, sig: P<Signature>) -> Vec<P<Type>> {
++        let Some(mapper) = sig.mapper.get() else {
++            return Vec::new();
++        };
++        let type_parameters = sig.target().unwrap_or(sig).type_parameters();
++        self.instantiate_types(type_parameters, Some(mapper))
++    }
++
+     // exports.go:8
+     pub fn get_string_type(&self) -> P<Type> {
+         self.string_type
+diff --git a/crates/tsrs_checker/src/lib.rs b/crates/tsrs_checker/src/lib.rs
+index e175d9c..64d9f37 100644
+--- a/crates/tsrs_checker/src/lib.rs
++++ b/crates/tsrs_checker/src/lib.rs
+@@ -138,6 +138,7 @@ mod checker_14;
+ pub(crate) use checker_14::*;
+ mod checker_15;
+ pub(crate) use checker_15::*;
++mod effect_stability_context;
+ mod relater_1;
+ pub(crate) use relater_1::*;
+ mod flow;
+diff --git a/crates/tsrs_checker/src/relater_2.rs b/crates/tsrs_checker/src/relater_2.rs
+index 8e5b2e3..79d9a8c 100644
+--- a/crates/tsrs_checker/src/relater_2.rs
++++ b/crates/tsrs_checker/src/relater_2.rs
+@@ -4572,6 +4572,15 @@ impl Relater {
+         source: P<Type>,
+         target: P<Type>,
+     ) {
++        if let Some(error_node) = self.error_node.get()
++            && let Some(source_file) = ast::get_source_file_of_node(error_node)
++        {
++            c.source_file_links.get(source_file).relation_errors.borrow_mut().push(RelationError {
++                source,
++                target,
++                error_node,
++            });
++        }
+         let (source_type, target_type) = c.get_type_names_for_error_display(source, target);
+         let mut generalized_source = source;
+         let mut generalized_source_type = source_type.clone();
+diff --git a/crates/tsrs_checker/src/types.rs b/crates/tsrs_checker/src/types.rs
+index 889312a..61c5d53 100644
+--- a/crates/tsrs_checker/src/types.rs
++++ b/crates/tsrs_checker/src/types.rs
+@@ -836,6 +836,13 @@ pub struct AssertionLinks {
+ 
+ // SourceFile links
+ 
++#[derive(Clone, Copy, Debug)]
++pub struct RelationError {
++    pub source: P<Type>,
++    pub target: P<Type>,
++    pub error_node: P<Node>,
++}
++
+ #[derive(Default)]
+ pub struct SourceFileLinks {
+     pub type_checked: Cell<bool>,
+@@ -849,6 +856,7 @@ pub struct SourceFileLinks {
+     pub local_jsx_factory: Cell<Option<P<Node>>>,
+     pub local_jsx_fragment_factory: Cell<Option<P<Node>>>,
+     pub jsx_fragment_type: Cell<Option<P<Type>>>,
++    pub relation_errors: RefCell<Vec<RelationError>>,
+ }
+ 
+ // Signature specific links
+@@ -3780,6 +3788,9 @@ impl crate::links::LinkCopy for SourceFileLinks {
+             self.identifier_check_nodes
+                 .borrow_mut()
+                 .clone_from(frozen.identifier_check_nodes.try_borrow_unguarded().unwrap());
++            self.relation_errors
++                .borrow_mut()
++                .clone_from(frozen.relation_errors.try_borrow_unguarded().unwrap());
+         }
+         self.local_jsx_namespace.set(frozen.local_jsx_namespace.get());
+         self.local_jsx_fragment_namespace.set(frozen.local_jsx_fragment_namespace.get());
+diff --git a/crates/tsrs_checker/src/effect_stability_context.rs b/crates/tsrs_checker/src/effect_stability_context.rs
+new file mode 100644
+index 0000000..49b9d1b
+--- /dev/null
++++ b/crates/tsrs_checker/src/effect_stability_context.rs
+@@ -0,0 +1,263 @@
++//! Narrow checker operations used by Effect's declared API stability analysis.
++//! Contextual replay deliberately retains the already selected signatures: an
++//! IgnoreNodeInferences query would resolve calls again and can change the
++//! program's diagnostics while inspecting a property declaration.
++
++use crate::*;
++
++struct StabilityInferenceLevel {
++    call: P<Node>,
++    target: P<Signature>,
++    arguments: Vec<P<Node>>,
++    index: usize,
++    this_type: Option<P<Type>>,
++    argument_types: Vec<Option<P<Type>>>,
++    fixed: Option<P<Type>>,
++}
++
++impl Checker {
++    pub fn effect_same_symbol_reference(&mut self, left: P<Symbol>, right: P<Symbol>) -> bool {
++        self.get_symbol_if_same_reference(left, right).is_some()
++    }
++
++    /// One import/export hop, preserving tags on forwarding declarations and
++    /// avoiding both synthetic default aliases and cached failed resolutions.
++    pub fn effect_immediate_aliased_symbol(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
++        if !symbol.flags().intersects(SymbolFlags::Alias)
++            || !symbol.declarations().iter().copied().any(ast::is_alias_symbol_declaration)
++            || self
++                .alias_symbol_links
++                .try_get(symbol)
++                .is_some_and(|links| links.alias_target.get() == Some(self.unknown_symbol))
++        {
++            return None;
++        }
++        self.get_immediate_aliased_symbol(symbol)
++    }
++
++    pub fn effect_object_literal_constraint_contextual_type(
++        &mut self,
++        node: P<Node>,
++    ) -> Option<P<Type>> {
++        if node.kind() != Kind::ObjectLiteralExpression {
++            return None;
++        }
++        let levels = self.stability_inference_replay_levels(node);
++        if levels.is_empty() {
++            return None;
++        }
++        let mut pushed = 0;
++        let mut complete = true;
++        for level in levels.iter().rev() {
++            let Some(argument_type) = self.stability_argument_type_without_own_inferences(level)
++            else {
++                complete = false;
++                break;
++            };
++            self.push_contextual_type(level.arguments[level.index], Some(argument_type), false);
++            pushed += 1;
++        }
++        let result =
++            if complete { self.get_contextual_type(node, ContextFlags::None) } else { None };
++        for _ in 0..pushed {
++            self.pop_contextual_type();
++        }
++        result
++    }
++
++    pub fn effect_object_literal_bare_constraint_contextual_type(
++        &mut self,
++        node: P<Node>,
++    ) -> Option<P<Type>> {
++        if node.kind() != Kind::ObjectLiteralExpression {
++            return None;
++        }
++        let (call, arguments, index) = self.stability_containing_call_argument(node)?;
++        let signature = self.get_resolved_signature(call, None, CheckMode::Normal);
++        let target = signature.target()?;
++        let parameters = target.type_parameters();
++        let arguments_types = self.get_type_arguments_for_resolved_signature(signature);
++        if parameters.is_empty() || arguments_types.len() != parameters.len() {
++            return None;
++        }
++        let inferred = new_type_mapper(parameters, alloc_vec(arguments_types));
++        let mut constrained = Vec::with_capacity(parameters.len());
++        let mut has_constraint = false;
++        for &parameter in parameters {
++            if let Some(constraint) = self.get_constraint_of_type_parameter(parameter) {
++                constrained.push(self.instantiate_type(constraint, Some(inferred)));
++                has_constraint = true;
++            } else {
++                constrained.push(self.unknown_type);
++            }
++        }
++        if !has_constraint {
++            return None;
++        }
++        let parameter_type = self.get_type_at_position(target, index);
++        let mapper = new_type_mapper(parameters, alloc_vec(constrained));
++        let argument_type = self.instantiate_type(parameter_type, Some(mapper));
++        self.push_contextual_type(arguments[index], Some(argument_type), false);
++        let result = self.get_contextual_type(node, ContextFlags::None);
++        self.pop_contextual_type();
++        result
++    }
++
++    fn stability_inference_replay_levels(&mut self, node: P<Node>) -> Vec<StabilityInferenceLevel> {
++        let mut levels = Vec::new();
++        let mut current = node;
++        loop {
++            let Some((call, arguments, index)) = self.stability_containing_call_argument(current)
++            else {
++                break;
++            };
++            let signature = self.get_resolved_signature(call, None, CheckMode::Normal);
++            let Some(target) =
++                signature.target().filter(|target| !target.type_parameters().is_empty())
++            else {
++                break;
++            };
++            if !call.type_arguments().is_empty() {
++                let fixed = self.get_type_at_position(signature, index);
++                levels.push(StabilityInferenceLevel {
++                    call,
++                    target,
++                    arguments,
++                    index,
++                    this_type: None,
++                    argument_types: Vec::new(),
++                    fixed: Some(fixed),
++                });
++                break;
++            }
++            let this_type = if self.get_this_type_of_signature(target).is_some() {
++                let this_argument = self.get_this_argument_of_call(call);
++                Some(self.get_this_argument_type(this_argument))
++            } else {
++                None
++            };
++            let argument_types = arguments
++                .iter()
++                .enumerate()
++                .map(|(i, &argument)| {
++                    (i != index && argument.kind() != Kind::OmittedExpression)
++                        .then(|| self.check_expression_cached(argument))
++                })
++                .collect();
++            levels.push(StabilityInferenceLevel {
++                call,
++                target,
++                arguments,
++                index,
++                this_type,
++                argument_types,
++                fixed: None,
++            });
++            current = call;
++        }
++        levels
++    }
++
++    fn stability_argument_type_without_own_inferences(
++        &mut self,
++        level: &StabilityInferenceLevel,
++    ) -> Option<P<Type>> {
++        if level.fixed.is_some() {
++            return level.fixed;
++        }
++        let parameters = level.target.type_parameters();
++        let context =
++            Self::new_inference_context(parameters, Some(level.target), InferenceFlags::None, None);
++        let inferences = context.inferences.get();
++        let skip_binding_patterns = parameters
++            .iter()
++            .all(|&parameter| self.get_default_from_type_parameter(parameter).is_some());
++        let flags = if skip_binding_patterns {
++            ContextFlags::SkipBindingPatterns
++        } else {
++            ContextFlags::None
++        };
++        if let Some(contextual) = self.get_contextual_type(level.call, flags) {
++            let is_binding_pattern = !skip_binding_patterns
++                && self.get_contextual_type(level.call, ContextFlags::SkipBindingPatterns)
++                    != Some(contextual);
++            if !is_binding_pattern {
++                let mut source = contextual;
++                if let Some(signature) = self
++                    .get_single_call_signature(contextual)
++                    .filter(|s| !s.type_parameters().is_empty())
++                {
++                    let instantiated = self
++                        .get_signature_instantiation_without_filling_in_type_arguments(
++                            signature,
++                            signature.type_parameters(),
++                        );
++                    source = self.get_or_create_type_from_signature(instantiated);
++                }
++                let returns = self.get_return_type_of_signature(level.target);
++                self.infer_types(
++                    inferences,
++                    source,
++                    returns,
++                    InferencePriority::RETURN_TYPE,
++                    false,
++                );
++            }
++        }
++        if let Some(this_type) = level.this_type {
++            if let Some(parameter_type) = self.get_this_type_of_signature(level.target) {
++                self.infer_types(
++                    inferences,
++                    this_type,
++                    parameter_type,
++                    InferencePriority::NONE,
++                    false,
++                );
++            }
++        }
++        for (index, argument_type) in level.argument_types.iter().enumerate() {
++            if let Some(argument_type) = *argument_type {
++                let parameter_type = self.get_type_at_position(level.target, index);
++                self.infer_types(
++                    inferences,
++                    argument_type,
++                    parameter_type,
++                    InferencePriority::NONE,
++                    false,
++                );
++            }
++        }
++        let parameter_type = self.get_type_at_position(level.target, level.index);
++        Some(self.instantiate_type(parameter_type, Self::get_mapper_from_context(Some(context))))
++    }
++
++    fn stability_containing_call_argument(
++        &mut self,
++        node: P<Node>,
++    ) -> Option<(P<Node>, Vec<P<Node>>, usize)> {
++        let mut current = node;
++        let call = loop {
++            let parent = current.parent()?;
++            if ast::is_call_like_expression(parent) {
++                if ast::is_call_or_new_expression(parent) && parent.expression() != Some(current)
++                    || parent.kind() == Kind::TaggedTemplateExpression
++                        && parent.as_tagged_template_expression().tag() != current
++                {
++                    break parent;
++                }
++                return None;
++            }
++            current = parent;
++        };
++        let arguments = self.get_effective_call_arguments(call);
++        let mut argument = node;
++        while argument != call && !arguments.contains(&argument) {
++            argument = argument.parent()?;
++        }
++        let index = arguments.iter().position(|&candidate| candidate == argument)?;
++        if arguments[..=index].iter().any(|argument| argument.kind() == Kind::SpreadElement) {
++            return None;
++        }
++        Some((call, arguments, index))
++    }
++}

@@ -1,0 +1,22 @@
+{
+  "name": "effect-tsrs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup-tsrs.mjs",
+    "build": "node scripts/cargo.mjs build --locked",
+    "build:release": "node scripts/cargo.mjs build --release --locked",
+    "check": "node scripts/cargo.mjs fmt --check && node scripts/cargo.mjs clippy --all-targets --locked -- -D warnings",
+    "test": "node scripts/cargo.mjs test --locked",
+    "verify": "node scripts/verify.mjs",
+    "verify:config": "node scripts/verify-config.mjs",
+    "verify:all": "node scripts/verify-all.mjs",
+    "fixtures:install": "npm ci --ignore-scripts --legacy-peer-deps --prefix fixtures/all/deps/v3 && npm ci --ignore-scripts --legacy-peer-deps --prefix fixtures/all/deps/v4",
+    "bench": "node scripts/bench.mjs"
+  },
+  "devDependencies": {
+    "@effect/tsgo": "0.56.0",
+    "effect": "4.0.2",
+    "typescript": "7.1.0-beta"
+  }
+}
