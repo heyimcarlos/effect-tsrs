@@ -6,14 +6,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const args = { artifacts: "", dryRun: false };
+const args = { artifacts: "", dryRun: false, resume: false };
 for (let index = 2; index < process.argv.length; index++) {
   if (process.argv[index] === "--dry-run") {
     args.dryRun = true;
+  } else if (process.argv[index] === "--resume") {
+    args.resume = true;
   } else if (process.argv[index] === "--artifacts" && process.argv[index + 1]) {
     args.artifacts = process.argv[++index];
   } else {
-    throw new Error("Usage: node scripts/publish-npm.mjs --artifacts DIR [--dry-run]");
+    throw new Error("Usage: node scripts/publish-npm.mjs --artifacts DIR [--dry-run] [--resume]");
   }
 }
 assert(args.artifacts, "--artifacts DIR is required");
@@ -112,7 +114,7 @@ function contents(archive, platform) {
 }
 
 async function waitForNativePackages(packages, {
-  timeoutMs = 10 * 60_000,
+  timeoutMs = 20 * 60_000,
   intervalMs = 10_000,
   request = globalThis.fetch,
   now = Date.now,
@@ -233,6 +235,7 @@ for (const [platform, release] of releases) {
 const publish = [...required.map((platform) => releases.get(platform).native), chosenMain];
 console.log(`Validated ${required.length} platforms for ${manifest.name}@${manifest.version}, commit ${commit}.`);
 for (const [index, archive] of publish.entries()) {
+  if (args.resume && archive !== chosenMain) continue;
   console.log(`${index + 1}. npm publish ${JSON.stringify(archive.file)} --access public --provenance --ignore-scripts${args.dryRun ? " (dry run)" : ""}`);
 }
 
@@ -254,7 +257,9 @@ if (!args.dryRun) {
     assert(!result.signal && result.status === 0, `npm publish failed for ${archive.name} (status ${result.status}, signal ${result.signal})`);
   };
   const natives = publish.slice(0, -1);
-  for (const archive of natives) publishArchive(archive);
+  if (!args.resume) {
+    for (const archive of natives) publishArchive(archive);
+  }
   await waitForNativePackages(natives);
   publishArchive(chosenMain);
 }

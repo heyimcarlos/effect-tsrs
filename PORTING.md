@@ -166,3 +166,9 @@ publishing the launcher.
 Publishing uses npm's trusted publisher for `yielded-dev/effect-tsrs` and
 `release-packages.yml`, with GitHub OIDC and provenance. No npm token is needed.
 Manually dispatching the workflow builds and verifies packages without publishing.
+
+If all native uploads were accepted but the registry availability check timed out,
+dispatch the workflow with `resume_run_id` set to the original release run ID.
+The current package version must match that release. This validates the original
+successful builds and their artifacts, waits for all native versions with matching
+integrity, then publishes only the launcher without repeating the native uploads.

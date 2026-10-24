@@ -2,6 +2,12 @@ name: Release packages
 
 on:
   workflow_dispatch:
+    inputs:
+      resume_run_id:
+        description: "Resume the launcher publication after all native uploads were accepted in this release run"
+        type: string
+        required: false
+        default: ""
   push:
     tags: ["v*"]
 
@@ -14,6 +20,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ !inputs.resume_run_id }}
     name: ${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
@@ -141,16 +148,45 @@ jobs:
   publish:
     name: Publish to npm
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ always() && ((startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success') || (github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '')) }}
     runs-on: ubuntu-22.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
+      actions: read
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Validate original release run
+        id: resume
+        if: inputs.resume_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+        run: |
+          [[ "$RESUME_RUN_ID" =~ ^[0-9]+$ ]] || exit 1
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RESUME_RUN_ID" > "$RUNNER_TEMP/release-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RESUME_RUN_ID/jobs?per_page=100" > "$RUNNER_TEMP/release-jobs.json"
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import fs from "node:fs";
+          import path from "node:path";
+          const run = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, "release-run.json")));
+          const { jobs } = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, "release-jobs.json")));
+          const manifest = JSON.parse(fs.readFileSync("package.json"));
+          assert.equal(run.event, "push");
+          assert.equal(run.path, ".github/workflows/release-packages.yml");
+          assert.equal(run.head_branch, `v${manifest.version}`);
+          assert.match(run.head_sha, /^[a-f0-9]{40}$/);
+          for (const platform of ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-x64"]) {
+            const builds = jobs.filter(job => job.name === platform);
+            assert.equal(builds.length, 1, `Missing or duplicate build: ${platform}`);
+            assert.equal(builds[0].conclusion, "success", `Build did not pass: ${platform}`);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `sha=${run.head_sha}\n`);
+          NODE
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24.22.1"
@@ -161,5 +197,13 @@ jobs:
         with:
           pattern: npm-*
           path: artifacts/release
+          run-id: ${{ inputs.resume_run_id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Publish verified native packages, then the launcher
-        run: node scripts/publish-npm.mjs --artifacts artifacts/release
+        env:
+          GITHUB_SHA: ${{ steps.resume.outputs.sha || github.sha }}
+          RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+        run: |
+          options=()
+          [ -z "$RESUME_RUN_ID" ] || options+=(--resume)
+          node scripts/publish-npm.mjs --artifacts artifacts/release "${options[@]}"
