@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { home, plan, prepare, readJson, writeJson } from "./all-rules-lib.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const args = { binary: "target/release/effect-tsrs", output: "artifacts/verify-oxlint-all", jobs: "4", fixtures: "all", limit: "0", backend: "7.0.2004" };
+const args = { binary: "target/release/effect-tsrs", output: "artifacts/verify-oxlint-all", jobs: "4", fixtures: "all", limit: "0", backend: "7.0.2004", corrections: "none" };
 for (let i = 2; i < process.argv.length; i += 2) {
   const key = process.argv[i].replace(/^--/, "");
   assert(Object.hasOwn(args, key) && process.argv[i + 1], `Unknown or incomplete option: ${process.argv[i]}`);
@@ -18,6 +18,8 @@ for (const key of ["jobs", "limit"]) {
   args[key] = Number(args[key]);
   assert(Number.isSafeInteger(args[key]) && args[key] >= (key === "jobs" ? 1 : 0));
 }
+assert(["none", "fixes", "suggestions", "all"].includes(args.corrections), "--corrections must be none, fixes, suggestions, or all");
+const correctionFlags = args.corrections === "none" ? [] : args.corrections === "fixes" ? ["--fix"] : args.corrections === "suggestions" ? ["--fix-suggestions"] : ["--fix", "--fix-suggestions"];
 const output = path.resolve(root, args.output);
 assert(!fs.existsSync(output), "Use a fresh output directory to preserve previous evidence");
 fs.mkdirSync(output, { recursive: true });
@@ -46,8 +48,8 @@ const report = {
   source: manifest.source, settings: args, protocol: 2,
   versions: { effectTsgo: readJson(path.join(upstream, "package.json")).version, backend: args.backend, ...Object.fromEntries(["v3", "v4"].map(v => [v, readJson(path.join(home, "deps", v, "node_modules/effect/package.json")).version])) },
   expectedFixtures: selected.length, expectedPairs: selected.reduce((n, group) => n + group.rules.length, 0),
-  scope: "Every pair in the standalone relevant-fixture matrix. Rules associated with each fixture run together through the real Oxlint headless protocol. Fixes are not requested.",
-  results: [], coverage: {},
+  scope: `Every pair in the standalone relevant-fixture matrix. Rules associated with each fixture run together through the real Oxlint headless protocol. Corrections: ${args.corrections}.`,
+  results: [], coverage: {}, correctionCoverage: {},
 };
 const save = () => writeJson(path.join(output, "report.json"), report);
 save();
@@ -55,7 +57,7 @@ console.log(`Prepared ${selected.length} fixtures / ${report.expectedPairs} rule
 function invoke(executable, prepared, payload) {
   return new Promise(resolve => {
     const started = performance.now();
-    const child = spawn(executable, ["headless"], { cwd: prepared.cwd, env: { ...process.env, GOMAXPROCS: "1", RAYON_NUM_THREADS: "1" }, stdio: ["pipe", "pipe", "pipe"] });
+    const child = spawn(executable, ["headless", ...correctionFlags], { cwd: prepared.cwd, env: { ...process.env, GOMAXPROCS: "1", RAYON_NUM_THREADS: "1" }, stdio: ["pipe", "pipe", "pipe"] });
     const stdout = [], stderr = [];
     let failure;
     const timeout = setTimeout(() => { failure = "Timed out after 120 seconds"; child.kill("SIGKILL"); }, 120_000);
@@ -87,9 +89,13 @@ function normalize(frames, prepared) {
     assert.equal(kind, 1, `Unexpected protocol frame: ${JSON.stringify(data)}`);
     const file = data.file_path ? path.relative(prepared.caseRoot, data.file_path).split(path.sep).join("/") : null;
     const range = value => value ? { pos: value.pos, end: value.end } : null;
+    const message = value => ({ id: value.id ?? null, description: value.description, help: value.help ?? null });
+    const fixes = values => (values ?? []).map(fix => ({ range: range(fix.range), text: fix.text }));
     return { kind: data.kind, file, rule: data.rule ?? null, range: range(data.range),
-      message: { id: data.message.id, description: data.message.description, help: data.message.help ?? null },
+      message: message(data.message),
       labels: (data.labeled_ranges ?? []).map(label => ({ label: label.label, range: range(label.range) })),
+      fixes: fixes(data.fixes),
+      suggestions: (data.suggestions ?? []).map(suggestion => ({ message: message(suggestion.message), fixes: fixes(suggestion.fixes) })),
     };
   }));
 }
@@ -121,6 +127,13 @@ async function worker() {
         if (!qualified.has(diagnostic.rule)) continue;
         const name = qualified.get(diagnostic.rule);
         report.coverage[name] = (report.coverage[name] ?? 0) + 1;
+        if (diagnostic.fixes.length || diagnostic.suggestions.length) {
+          const coverage = report.correctionCoverage[name] ??= { diagnostics: 0, fixes: 0, suggestions: 0, edits: 0 };
+          coverage.diagnostics++;
+          coverage.fixes += diagnostic.fixes.length;
+          coverage.suggestions += diagnostic.suggestions.length;
+          coverage.edits += diagnostic.fixes.length + diagnostic.suggestions.reduce((n, suggestion) => n + suggestion.fixes.length, 0);
+        }
       }
     } catch (error) { result.error = error.message.slice(0, 1500); }
     report.results.push(result);
