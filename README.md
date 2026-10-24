@@ -6,10 +6,27 @@ A native Rust port of all **130 diagnostic rules** from
 then evaluates Effect diagnostics using the compiler's inferred types, symbols,
 and AST. Both Effect v3 and v4 are supported.
 
-The executable runs entirely in Rust. Node and the original Go executable are
-used by development and verification tools, not by the diagnostic runner.
+The diagnostic runner is native Rust. The npm package uses a small Node launcher
+to select the binary for your platform.
 
-## Build and run
+## Install and run
+
+Requires Node 22.14 or newer. Prebuilt binaries are included for macOS (Apple
+Silicon and Intel), Linux (x64 and ARM64), and Windows (x64). Linux builds are
+statically linked with musl; no Rust toolchain or install scripts are required.
+
+```sh
+npm install --save-dev @yielded/effect-tsrs
+npx effect-tsrs diagnostics -p tsconfig.json
+
+# Or run without adding a dependency:
+npx @yielded/effect-tsrs diagnostics -p tsconfig.json --format json
+```
+
+Keep optional dependencies enabled: npm uses them to install the native package
+for your platform. The TypeScript standard libraries are embedded in the binary.
+
+## Build from source
 
 Requires rustup, a C compiler, CMake, and Node/npm. The build wrapper selects the
 pinned Rust toolchain and verifies the pinned tsrs checkout and compiler patch.
@@ -35,14 +52,14 @@ suppression directives. Without a plugin entry, it uses upstream rule defaults.
 
 ```sh
 # Select a subset; default-off rules become warnings unless explicitly disabled.
-./target/release/effect-tsrs diagnostics -p tsconfig.json \
+npx effect-tsrs diagnostics -p tsconfig.json \
   --rules floatingEffect,asyncFunction,unnecessaryPipe
 
 # Select all 130 rules, subject to explicit configuration and directives.
-./target/release/effect-tsrs diagnostics -p tsconfig.json --rules all
+npx effect-tsrs diagnostics -p tsconfig.json --rules all
 
 # Replace the plugin options with an editor/CLI configuration.
-./target/release/effect-tsrs diagnostics -p tsconfig.json \
+npx effect-tsrs diagnostics -p tsconfig.json \
   --lspconfig '{"diagnosticSeverity":{"floatingEffect":"warning"}}'
 ```
 
@@ -109,5 +126,5 @@ TypeScript 7.1.0-beta). Fixtures use Effect 3.19.19 and 4.0.2.
 ## License
 
 Translated rules and copied fixtures retain effect-tsgo's [MIT license](LICENSE).
-The tsrs/TypeScript compiler is an Apache-2.0 dependency; its notices remain in the
-pinned checkout.
+The tsrs/TypeScript compiler is an Apache-2.0 dependency. Binary packages include
+its notices and dependency licenses in [THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES).

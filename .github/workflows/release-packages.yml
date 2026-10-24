@@ -1,0 +1,115 @@
+name: Release packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: darwin-arm64
+            target: aarch64-apple-darwin
+            runner: macos-14
+          - platform: darwin-x64
+            target: x86_64-apple-darwin
+            runner: macos-15-intel
+          - platform: linux-x64
+            target: x86_64-unknown-linux-musl
+            runner: ubuntu-22.04
+          - platform: linux-arm64
+            target: aarch64-unknown-linux-musl
+            runner: ubuntu-22.04-arm
+            # Support kernels with a 39-bit virtual address space as well.
+            features: tsrs_core/plain-ptrs
+          - platform: win32-x64
+            target: x86_64-pc-windows-msvc
+            runner: windows-2022
+            rustflags: -C target-feature=+crt-static
+    defaults:
+      run:
+        shell: bash
+    env:
+      CARGO_TERM_COLOR: always
+      RUSTFLAGS: ${{ matrix.rustflags || '' }}
+    steps:
+      - name: Preserve fixture and patch bytes
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22.14.0"
+          cache: npm
+      - name: Check release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
+      - name: Install pinned Rust
+        run: rustup toolchain install 1.99.1 --profile minimal --component clippy --component rustfmt --target ${{ matrix.target }}
+      - name: Install development dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare pinned compiler
+        run: npm run setup
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          key: ${{ matrix.target }}-${{ hashFiles('upstream.json', 'patches/**') }}
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2.87.30
+        if: runner.os == 'Linux'
+        with:
+          tool: cargo-zigbuild@0.24.0
+          fallback: none
+      - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
+        if: runner.os == 'Linux'
+        with:
+          version: 0.13.0
+      - name: Build native executable
+        env:
+          TARGET: ${{ matrix.target }}
+          FEATURES: ${{ matrix.features || '' }}
+        run: |
+          command=build
+          [ "$RUNNER_OS" != Linux ] || command=zigbuild
+          options=()
+          [ -z "$FEATURES" ] || options+=(--features "$FEATURES")
+          node scripts/cargo.mjs "$command" --release --locked --target "$TARGET" "${options[@]}"
+      - name: Check configuration parity
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          extension=
+          [ "$RUNNER_OS" != Windows ] || extension=.exe
+          npm run verify:config -- --binary "target/$TARGET/release/effect-tsrs$extension"
+      - name: Pack npm tarballs
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          extension=
+          [ "$RUNNER_OS" != Windows ] || extension=.exe
+          npm run package:release -- --target "$TARGET" --binary "target/$TARGET/release/effect-tsrs$extension"
+      - name: Verify installed packages
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          npm run verify:package -- \
+            --package "artifacts/npm/yielded-effect-tsrs-$version.tgz" \
+            --platform "artifacts/npm/yielded-effect-tsrs-$PLATFORM-$version.tgz"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-${{ matrix.platform }}
+          path: |
+            artifacts/npm/*.tgz
+            artifacts/npm/package-*.json
+            artifacts/verify-package/
+            artifacts/verify-config/
+          if-no-files-found: error

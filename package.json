@@ -1,7 +1,29 @@
 {
-  "name": "effect-tsrs",
-  "private": true,
+  "name": "@yielded/effect-tsrs",
+  "version": "0.1.0",
+  "description": "Native Effect diagnostics for TypeScript, powered by tsrs",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yielded-dev/effect-tsrs.git"
+  },
+  "homepage": "https://github.com/yielded-dev/effect-tsrs#readme",
+  "bugs": "https://github.com/yielded-dev/effect-tsrs/issues",
+  "engines": {
+    "node": ">=22.14"
+  },
+  "bin": {
+    "effect-tsrs": "bin/effect-tsrs.js"
+  },
+  "files": [
+    "bin/",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "setup": "node scripts/setup-tsrs.mjs",
     "build": "node scripts/cargo.mjs build --locked",
@@ -12,7 +34,16 @@
     "verify:config": "node scripts/verify-config.mjs",
     "verify:all": "node scripts/verify-all.mjs",
     "fixtures:install": "npm ci --ignore-scripts --legacy-peer-deps --prefix fixtures/all/deps/v3 && npm ci --ignore-scripts --legacy-peer-deps --prefix fixtures/all/deps/v4",
-    "bench": "node scripts/bench.mjs"
+    "bench": "node scripts/bench.mjs",
+    "package:release": "node scripts/package-release.mjs",
+    "verify:package": "node scripts/verify-package.mjs"
+  },
+  "optionalDependencies": {
+    "@yielded/effect-tsrs-darwin-arm64": "0.1.0",
+    "@yielded/effect-tsrs-darwin-x64": "0.1.0",
+    "@yielded/effect-tsrs-linux-x64": "0.1.0",
+    "@yielded/effect-tsrs-linux-arm64": "0.1.0",
+    "@yielded/effect-tsrs-win32-x64": "0.1.0"
   },
   "devDependencies": {
     "@effect/tsgo": "0.56.0",
