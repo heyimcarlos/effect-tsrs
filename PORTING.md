@@ -168,7 +168,12 @@ Publishing uses npm's trusted publisher for `yielded-dev/effect-tsrs` and
 Manually dispatching the workflow builds and verifies packages without publishing.
 
 If all native uploads were accepted but the registry availability check timed out,
-dispatch the workflow with `resume_run_id` set to the original release run ID.
-The current package version must match that release. This validates the original
-successful builds and their artifacts, waits for all native versions with matching
-integrity, then publishes only the launcher without repeating the native uploads.
+the workflow automatically continues from the original verified artifacts without
+repeating native uploads. Each check waits up to ten minutes; after 36 checks it
+stops with an explicit registry-pending failure. Integrity or upload errors fail
+immediately rather than scheduling a continuation.
+
+For manual recovery, dispatch the workflow with `resume_run_id` set to the original
+release run ID and `release_tag` set to its version tag. The original manifest and
+successful builds are validated before checking native integrity and publishing
+the launcher. An already-published launcher with matching integrity is a no-op.

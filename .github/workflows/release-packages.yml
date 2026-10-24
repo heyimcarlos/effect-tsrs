@@ -8,6 +8,16 @@ on:
         type: string
         required: false
         default: ""
+      release_tag:
+        description: "Original version tag when resuming (for example v0.1.3)"
+        type: string
+        required: false
+        default: ""
+      resume_attempt:
+        description: "Automatic continuation count; leave at zero for manual recovery"
+        type: number
+        required: false
+        default: 0
   push:
     tags: ["v*"]
 
@@ -15,7 +25,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.release_tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -69,6 +79,8 @@ jobs:
         run: rustup toolchain install 1.99.1 --profile minimal --component clippy --component rustfmt --target ${{ matrix.target }}
       - name: Install development dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify release control flow
+        run: node --test scripts/npm-registry.test.mjs
       - name: Prepare pinned compiler
         run: npm run setup
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
@@ -150,10 +162,10 @@ jobs:
     needs: build
     if: ${{ always() && ((startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success') || (github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '')) }}
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 15
     permissions:
       contents: read
-      actions: read
+      actions: write
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -165,6 +177,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           [[ "$RESUME_RUN_ID" =~ ^[0-9]+$ ]] || exit 1
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RESUME_RUN_ID" > "$RUNNER_TEMP/release-run.json"
@@ -175,10 +188,9 @@ jobs:
           import path from "node:path";
           const run = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, "release-run.json")));
           const { jobs } = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, "release-jobs.json")));
-          const manifest = JSON.parse(fs.readFileSync("package.json"));
           assert.equal(run.event, "push");
           assert.equal(run.path, ".github/workflows/release-packages.yml");
-          assert.equal(run.head_branch, `v${manifest.version}`);
+          assert.equal(run.head_branch, process.env.RELEASE_TAG);
           assert.match(run.head_sha, /^[a-f0-9]{40}$/);
           for (const platform of ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-x64"]) {
             const builds = jobs.filter(job => job.name === platform);
@@ -186,6 +198,20 @@ jobs:
             assert.equal(builds[0].conclusion, "success", `Build did not pass: ${platform}`);
           }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `sha=${run.head_sha}\n`);
+          NODE
+          source_sha="$(node -p 'JSON.parse(require("fs").readFileSync(process.env.RUNNER_TEMP + "/release-run.json")).head_sha')"
+          gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$source_sha" > "$RUNNER_TEMP/release-manifest-response.json"
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import fs from "node:fs";
+          import path from "node:path";
+          const response = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, "release-manifest-response.json")));
+          const contents = Buffer.from(response.content, "base64");
+          const manifest = JSON.parse(contents);
+          assert.equal(process.env.RELEASE_TAG, `v${manifest.version}`);
+          const file = path.join(process.env.RUNNER_TEMP, "release-package.json");
+          fs.writeFileSync(file, contents);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `manifest=${file}\n`);
           NODE
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -200,10 +226,37 @@ jobs:
           run-id: ${{ inputs.resume_run_id || github.run_id }}
           github-token: ${{ github.token }}
       - name: Publish verified native packages, then the launcher
+        id: publish
         env:
-          GITHUB_SHA: ${{ steps.resume.outputs.sha || github.sha }}
+          RELEASE_SHA: ${{ steps.resume.outputs.sha || github.sha }}
+          RELEASE_MANIFEST: ${{ steps.resume.outputs.manifest }}
           RESUME_RUN_ID: ${{ inputs.resume_run_id }}
         run: |
           options=()
           [ -z "$RESUME_RUN_ID" ] || options+=(--resume)
+          set +e
           node scripts/publish-npm.mjs --artifacts artifacts/release "${options[@]}"
+          status=$?
+          set -e
+          if [ "$status" -eq 75 ]; then
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          else
+            exit "$status"
+          fi
+      - name: Queue registry continuation
+        if: steps.publish.outputs.pending == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.resume_run_id || github.run_id }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+          CONTINUATION_REF: ${{ github.ref_name }}
+          RESUME_ATTEMPT: ${{ inputs.resume_attempt || 0 }}
+        run: |
+          [[ "$RESUME_ATTEMPT" =~ ^[0-9]+$ ]] || exit 1
+          if [ "$RESUME_ATTEMPT" -ge 35 ]; then
+            echo "Registry still pending after 36 checks; native uploads are retained and the launcher remains withheld." >&2
+            exit 1
+          fi
+          gh workflow run release-packages.yml --repo "$GITHUB_REPOSITORY" --ref "$CONTINUATION_REF" \
+            -f resume_run_id="$SOURCE_RUN_ID" -f release_tag="$RELEASE_TAG" -f resume_attempt="$((RESUME_ATTEMPT + 1))"
+          echo "Registry processing is pending. Queued continuation for $RELEASE_TAG using verified artifacts from run $SOURCE_RUN_ID; native uploads will not be repeated." >> "$GITHUB_STEP_SUMMARY"
