@@ -123,6 +123,18 @@ Pinned sources: effect-tsgo `8813161074039b67ddb8fe1847e8efa0d8ff1e24` (0.56.0)
 and tsrs `8f135f106a637cf76f0395f146d0417f5287046e` (0.19.0,
 TypeScript 7.1.0-beta). Fixtures use Effect 3.19.19 and 4.0.2.
 
+## Releasing
+
+Keep the version in `Cargo.toml`, `Cargo.lock`, `package.json`, and the native
+`optionalDependencies` in sync, then update `package-lock.json`. Push a matching
+`vX.Y.Z` tag to release. The `release-packages.yml` workflow builds and tests all
+five platforms, runs the complete rule comparison on macOS ARM64, and publishes
+the native packages before the launcher.
+
+Publishing uses npm's trusted publisher for `yielded-dev/effect-tsrs` and
+`release-packages.yml`, with GitHub OIDC and provenance. No npm token is needed.
+Manually dispatching the workflow builds and verifies packages without publishing.
+
 ## License
 
 Translated rules and copied fixtures retain effect-tsgo's [MIT license](LICENSE).

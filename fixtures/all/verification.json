@@ -2419,5 +2419,87 @@
         }
       ]
     }
-  ]
+  ],
+  "npmRelease": {
+    "version": "0.1.0",
+    "commit": "e06477fad0dd1d0a409b30040dcba8f98caa1781",
+    "build": "https://github.com/yielded-dev/effect-tsrs/actions/runs/40064331685",
+    "mainFrom": "darwin-arm64",
+    "packages": [
+      {
+        "name": "@yielded/effect-tsrs-darwin-arm64",
+        "filename": "yielded-effect-tsrs-darwin-arm64-0.1.0.tgz",
+        "integrity": "sha512-XPo2vC+jAC/4k3I7caoRtwF1b2uTXNnVRUR8S9ScmYCNUepLU78EatGjgsH1ebv8aiwgpHJSbKG7aYuIUM0Gzw=="
+      },
+      {
+        "name": "@yielded/effect-tsrs-darwin-x64",
+        "filename": "yielded-effect-tsrs-darwin-x64-0.1.0.tgz",
+        "integrity": "sha512-T0KjSL+4Q0hWnDpay8y7w0s4rDs4juibrTjPsHrHipfI1ryKGikBBLtSvTsCAllM5PkejSilC1GE8X8efMXa6w=="
+      },
+      {
+        "name": "@yielded/effect-tsrs-linux-x64",
+        "filename": "yielded-effect-tsrs-linux-x64-0.1.0.tgz",
+        "integrity": "sha512-pQyknsoxiXvW3vbXvDd744+Ydr9umcEcZc1Eqrg/vaW3JU5WqB437RkOJTbZxDl4koQGRV6sbrHdBpmq5ZK+uA=="
+      },
+      {
+        "name": "@yielded/effect-tsrs-linux-arm64",
+        "filename": "yielded-effect-tsrs-linux-arm64-0.1.0.tgz",
+        "integrity": "sha512-o4MrMwLxsyYAingH6Y+Rl80h/PtOSvmZsmnPYny2JcMqGn7nX3VZIvY6xSV3dt3RhTzBGcnllJVtfuHO2k0wWg=="
+      },
+      {
+        "name": "@yielded/effect-tsrs-win32-x64",
+        "filename": "yielded-effect-tsrs-win32-x64-0.1.0.tgz",
+        "integrity": "sha512-QpFyMSB3NKNzL6VHAGMu1k0+7mkzyRV2EJRn30eR2qekw94on9GOqA10aE8IDve+MCywKpz43g0jpOuJP6Rfag=="
+      },
+      {
+        "name": "@yielded/effect-tsrs",
+        "filename": "yielded-effect-tsrs-0.1.0.tgz",
+        "integrity": "sha512-56CgOJ1OfIdFl6qpvnt5ZYTLnyd39aochu8AelgTBcL9/6lFMn19qXMjWatyy1xeycqdQmyxMCAG2CtS2soVKw=="
+      }
+    ],
+    "platforms": [
+      {
+        "platform": "darwin-arm64",
+        "target": "aarch64-apple-darwin",
+        "binarySha256": "505c08dfcf827ad2a92dfa376dad07d430d8b95d69a4d123b183e2194bf51710",
+        "packageChecks": 6,
+        "configurationPassed": true
+      },
+      {
+        "platform": "darwin-x64",
+        "target": "x86_64-apple-darwin",
+        "binarySha256": "cabed965cf19a5f3a28b9ced074c316a598188739e4f82265cfecc5e85cccb46",
+        "packageChecks": 6,
+        "configurationPassed": true
+      },
+      {
+        "platform": "linux-x64",
+        "target": "x86_64-unknown-linux-musl",
+        "binarySha256": "d9eef0ed2a20f856adf6051008c3d7101e43569f1295008e642e7668953c8712",
+        "packageChecks": 6,
+        "configurationPassed": true
+      },
+      {
+        "platform": "linux-arm64",
+        "target": "aarch64-unknown-linux-musl",
+        "binarySha256": "7c8b7f3a6dd73ea2d9e1e60a38b00f779841c708e9af97d2b495a0f6235e5e3e",
+        "packageChecks": 6,
+        "configurationPassed": true
+      },
+      {
+        "platform": "win32-x64",
+        "target": "x86_64-pc-windows-msvc",
+        "binarySha256": "cff6be2e2a04eb2ddb5a97783db33c5c14fbb209da92c05224b9e026506081a0",
+        "packageChecks": 6,
+        "configurationPassed": true
+      }
+    ],
+    "allRules": {
+      "platform": "darwin-arm64",
+      "binarySha256": "505c08dfcf827ad2a92dfa376dad07d430d8b95d69a4d123b183e2194bf51710",
+      "comparedPairs": 4263,
+      "positiveRules": 130,
+      "passed": true
+    }
+  }
 }

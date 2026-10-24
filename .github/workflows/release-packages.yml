@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: ${{ matrix.platform }}
@@ -89,6 +93,11 @@ jobs:
           extension=
           [ "$RUNNER_OS" != Windows ] || extension=.exe
           npm run verify:config -- --binary "target/$TARGET/release/effect-tsrs$extension"
+      - name: Check all 130 rules against the native oracle
+        if: matrix.platform == 'darwin-arm64'
+        run: |
+          npm run fixtures:install
+          npm run verify:all -- --binary target/aarch64-apple-darwin/release/effect-tsrs --output artifacts/all-rules/release --jobs 4
       - name: Pack npm tarballs
         env:
           TARGET: ${{ matrix.target }}
@@ -113,4 +122,31 @@ jobs:
             artifacts/verify-package/
             artifacts/verify-config/report.json
             artifacts/verify-config/cases/*/results/**
+            artifacts/all-rules/release/report.json
           if-no-files-found: error
+
+  publish:
+    name: Publish to npm
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.22.1"
+          package-manager-cache: false
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11.19.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: npm-*
+          path: artifacts/release
+      - name: Publish verified native packages, then the launcher
+        run: node scripts/publish-npm.mjs --artifacts artifacts/release
