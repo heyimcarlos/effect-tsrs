@@ -61,6 +61,16 @@ and timings. The command exits with **0** when there are no errors, **1** for
 TypeScript or Effect errors, and **2** for invocation or compiler failures.
 Warnings and suggestions do not fail the command.
 
+Use `--strict` to also exit with **1** when warnings are reported, matching
+`effect-tsgo diagnostics --strict`:
+
+```sh
+npx effect-tsrs diagnostics --project tsconfig.json --strict
+```
+
+This only changes the exit code; warnings keep their severity in text and JSON
+output. Suggestions still do not fail the command.
+
 ## Supported Package Versions
 
 The current release is built and tested with the following versions:

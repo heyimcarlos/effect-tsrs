@@ -36,6 +36,7 @@ const cases = [
   { name: "override-later-wins", base: { diagnosticSeverity: { ...allOff, floatingEffect: "warning" }, overrides: [{ include: ["../src/**/*.ts"], options: { diagnosticSeverity: { floatingEffect: "off" } } }] }, child: { overrides: [{ include: ["../src/**/*.ts"], options: { diagnosticSeverity: { floatingEffect: "error" } } }] }, source: basic, expected: [[377001, "error"]] },
   { name: "unused-next", base: { diagnosticSeverity: { ...allOff, floatingEffect: "warning" } }, child: {}, source: "// @effect-diagnostics-next-line floatingEffect:off\nexport const value = 1\n", expected: [[377000, "warning"]] },
   { name: "used-next", base: { diagnosticSeverity: { ...allOff, floatingEffect: "warning" } }, child: {}, source: 'import { Effect } from "effect"\n// @effect-diagnostics-next-line floatingEffect:off\nEffect.succeed(1)\n', expected: [] },
+  { name: "suggestion", base: { diagnosticSeverity: { ...allOff, unnecessaryPipe: "message" } }, child: {}, source: basic, expected: [[377013, "message"]] },
   { name: "unused-wildcard", base: { diagnosticSeverity: { ...allOff, floatingEffect: "warning" } }, child: {}, source: "// @effect-diagnostics-next-line *:off\nexport const value = 1\n", expected: [] },
   { name: "unused-skip-file", base: { diagnosticSeverity: { ...allOff, floatingEffect: "warning" } }, child: {}, source: "// @effect-diagnostics *:skip-file\n// @effect-diagnostics-next-line floatingEffect:off\nexport const value = 1\n", expected: [] },
   { name: "unknown-local", base: { diagnosticSeverity: { ...allOff } }, child: { diagnosticSeverity: { floatingEfect: "off", unknownRuleName: "error" } }, source: "export const value = 1\n", expected: [], unknown: "local" },
@@ -77,7 +78,7 @@ function prepare(test) {
   return project;
 }
 
-function execute(command, argv, prefix, json) {
+function execute(command, argv, prefix, json, strict = false) {
   const start = performance.now();
   const result = spawnSync(command, argv, { cwd: root, env: environment, encoding: "utf8", timeout: 60_000, maxBuffer: 64 * 1024 * 1024 });
   const record = { command, args: argv, status: result.status, signal: result.signal, error: result.error?.message ?? null, elapsedMs: performance.now() - start };
@@ -90,7 +91,7 @@ function execute(command, argv, prefix, json) {
   if (!json) return { ...record, stdout: result.stdout };
   const data = JSON.parse(result.stdout);
   assert(Array.isArray(data.diagnostics), `Missing diagnostics array: ${prefix}`);
-  const expectedStatus = data.summary.errors > 0 || (data.typescriptDiagnostics ?? []).some((diagnostic) => diagnostic.severity === "error") ? 1 : 0;
+  const expectedStatus = data.summary.errors > 0 || (strict && data.summary.warnings > 0) || (data.typescriptDiagnostics ?? []).some((diagnostic) => diagnostic.severity === "error" || (strict && diagnostic.severity === "warning")) ? 1 : 0;
   assert.equal(result.status, expectedStatus, `Incorrect diagnostic exit status: ${prefix}`);
   assert(data.summary.filesChecked >= 1, `No files checked: ${prefix}`);
   return { ...record, data };
@@ -133,8 +134,8 @@ function normalizeEffect(data, project) {
 
 function parseCompiler(result, project) {
   return result.stdout.split(/\r?\n/).filter(Boolean).map((line) => {
-    const located = /^(.*?)\((\d+),(\d+)\): (error|warning) TS(\d+): (.*)$/.exec(line);
-    const plain = /^(error|warning) TS(\d+): (.*)$/.exec(line);
+    const located = /^(.*?)\((\d+),(\d+)\): (error|warning|message) TS(\d+): (.*)$/.exec(line);
+    const plain = /^(error|warning|message) TS(\d+): (.*)$/.exec(line);
     assert(located || plain, `Unrecognized native compiler output: ${line}`);
     const message = (located ? located[6] : plain[3]).replace(/ effect\(unknownRuleName\)$/, "");
     return located
@@ -184,6 +185,22 @@ try {
     assert.deepEqual(actual, expected, `Effect diagnostics differ for ${test.name}`);
     assert.deepEqual(actualCompiler, expectedCompiler, `Compiler diagnostics differ for ${test.name}`);
     assert.deepEqual(expectedCompiler.map(({ code, severity }) => [code, severity]), test.unknown ? [[377134, "error"]] : [], `Unexpected native compiler result for ${test.name}`);
+    const strictReference = execute(native, ["--effect-cli-diagnostics", JSON.stringify({ cwd: path.join(project, "app"), project: "tsconfig.json", format: "json", strict: true, progress: false })], `${prefix}/native-effect-strict`, true, true);
+    const strictCandidate = execute(binary, ["diagnostics", "-p", config, "--format", "json", "--rules", rules.join(","), "--strict"], `${prefix}/candidate-strict`, true, true);
+    assert.deepEqual(normalizeEffect(strictReference.data, project), expected, `Native --strict changed diagnostics for ${test.name}`);
+    assert.deepEqual(strictCandidate.data.diagnostics, candidate.data.diagnostics, `--strict changed diagnostics for ${test.name}`);
+    assert.deepEqual(strictCandidate.data.typescriptDiagnostics, candidate.data.typescriptDiagnostics, `--strict changed compiler diagnostics for ${test.name}`);
+    assert.deepEqual(strictCandidate.data.summary, candidate.data.summary, `--strict changed summary for ${test.name}`);
+    const expectedStrictStatus = test.unknown || test.expected.some(([, severity]) => severity === "error" || severity === "warning") ? 1 : 0;
+    assert.equal(strictCandidate.status, expectedStrictStatus, `Incorrect --strict exit status for ${test.name}`);
+    if (test.name === "unused-next") {
+      const textArgs = ["diagnostics", "-p", config, "--format", "text", "--rules", rules.join(",")];
+      const plainText = execute(binary, textArgs, `${prefix}/candidate-text`, false);
+      const strictText = execute(binary, [...textArgs, "--strict"], `${prefix}/candidate-text-strict`, false);
+      assert.equal(plainText.status, 0, "Text warnings must pass by default");
+      assert.equal(strictText.status, 1, "Text warnings must fail with --strict");
+      assert.equal(strictText.stdout, plainText.stdout, "--strict changed text output");
+    }
     if (test.unknown === "local") {
       const diagnostic = candidate.data.typescriptDiagnostics[0];
       const location = normalizeLocation(diagnostic.location, project);
@@ -198,7 +215,7 @@ try {
     writeJson(path.join(output, "report.json"), report);
     console.log(`${test.name}: exact parity (${actual.length} Effect, ${actualCompiler.length} compiler diagnostics)`);
   }
-  assert.equal(report.cases.length, 10, "Incomplete configuration coverage");
+  assert.equal(report.cases.length, cases.length, "Incomplete configuration coverage");
   assert(report.cases.filter((test) => test.actual.length > 0).length >= 4, "Missing positive Effect checks");
   assert.equal(report.cases.filter((test) => test.actualCompiler.length > 0).length, 2, "Missing positive metadata checks");
   assert.equal(sha256(binary), report.binary.sha256, "Candidate executable changed during verification");
