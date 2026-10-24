@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { home, plan, prepare, readJson } from "./all-rules-lib.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const options = {
@@ -27,6 +28,15 @@ if (fs.existsSync(binary)) throw new Error("Choose a new output directory to pre
 fs.copyFileSync(path.resolve(root, options.binary), binary, fs.constants.COPYFILE_FICLONE);
 fs.chmodSync(binary, 0o555);
 
+// Fixture projects are shared by the shards. Finish their symlink mounts and
+// synthetic-package overlays before any worker can read or prepare them.
+const selectedRules = catalog.filter((rule) => names.includes(rule.name));
+const selectedPairs = plan(readJson(path.join(home, "manifest.json")), selectedRules,
+  options.versions.split(","), options.fixtures, options.scope).entries;
+const fixtures = new Map(selectedPairs.map(({ fixture }) => [fixture.id, fixture]));
+console.log(`Preparing ${fixtures.size} shared fixtures before starting workers`);
+for (const fixture of fixtures.values()) prepare(fixture);
+
 function execute(args, log) {
   return new Promise((resolve, reject) => {
     const fd = log ? fs.openSync(log, "w") : null;
@@ -49,6 +59,18 @@ const statuses = await Promise.all(shards.map(async (rules, i) => {
   const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : null;
   const matched = data?.results?.filter((row) => row.status === "matched").length ?? 0;
   console.log(`Shard ${i + 1}: ${matched}/${data?.results?.length ?? 0} matched${status ? `; inspect shard-${i + 1}.log` : ""}`);
+  if (status) {
+    const concise = (value) => String(value ?? "").replace(/\s+/g, " ").slice(0, 500);
+    const failures = data?.results?.filter((row) => row.status !== "matched" || row.referenceGap) ?? [];
+    for (const row of failures) {
+      const error = row.error ?? row.referenceGap ?? "see the saved diagnostic comparison";
+      console.error(`Shard ${i + 1} failure: fixture=${concise(row.fixture)} rule=${concise(row.rule)} status=${concise(row.status)} error=${concise(error)}`);
+    }
+    if (!failures.length) {
+      const reason = data ? JSON.stringify(data.gaps ?? []) : "no shard report was written";
+      console.error(`Shard ${i + 1} exited ${status}: ${concise(reason)}`);
+    }
+  }
   return status;
 }));
 const status = await execute(["aggregate", ...shared, "--rules", options.rules, "--inputs", output, "--output", output]);

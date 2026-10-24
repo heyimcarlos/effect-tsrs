@@ -126,7 +126,9 @@ TypeScript 7.1.0-beta). Fixtures use Effect 3.19.19 and 4.0.2.
 ## Releasing
 
 Keep the version in `Cargo.toml`, `Cargo.lock`, `package.json`, and the native
-`optionalDependencies` in sync, then update `package-lock.json`. Push a matching
+`optionalDependencies` in sync, then update `package-lock.json`. Regenerate
+`THIRD-PARTY-NOTICES` with `node scripts/third-party-notices.mjs` after changing
+`Cargo.lock`. Push a matching
 `vX.Y.Z` tag to release. The `release-packages.yml` workflow builds and tests all
 five platforms, runs the complete rule comparison on macOS ARM64, and publishes
 the native packages before the launcher.

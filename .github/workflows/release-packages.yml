@@ -124,6 +124,19 @@ jobs:
             artifacts/verify-config/cases/*/results/**
             artifacts/all-rules/release/report.json
           if-no-files-found: error
+      - name: Retain verification failure details
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verification-failure-${{ matrix.platform }}
+          path: |
+            artifacts/all-rules/release/**/*.json
+            artifacts/all-rules/release/**/*.stderr.txt
+            artifacts/all-rules/release/shard-*.log
+            artifacts/verify-config/report.json
+            artifacts/verify-config/cases/*/results/**
+            artifacts/verify-package/
+          if-no-files-found: ignore
 
   publish:
     name: Publish to npm

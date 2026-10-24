@@ -1,6 +1,6 @@
 {
   "name": "@yielded/effect-tsrs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Native Effect diagnostics for TypeScript, powered by tsrs",
   "license": "MIT",
   "type": "module",
@@ -39,11 +39,11 @@
     "verify:package": "node scripts/verify-package.mjs"
   },
   "optionalDependencies": {
-    "@yielded/effect-tsrs-darwin-arm64": "0.1.1",
-    "@yielded/effect-tsrs-darwin-x64": "0.1.1",
-    "@yielded/effect-tsrs-linux-x64": "0.1.1",
-    "@yielded/effect-tsrs-linux-arm64": "0.1.1",
-    "@yielded/effect-tsrs-win32-x64": "0.1.1"
+    "@yielded/effect-tsrs-darwin-arm64": "0.1.2",
+    "@yielded/effect-tsrs-darwin-x64": "0.1.2",
+    "@yielded/effect-tsrs-linux-x64": "0.1.2",
+    "@yielded/effect-tsrs-linux-arm64": "0.1.2",
+    "@yielded/effect-tsrs-win32-x64": "0.1.2"
   },
   "devDependencies": {
     "@effect/tsgo": "0.56.0",
