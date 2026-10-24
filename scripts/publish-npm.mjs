@@ -4,21 +4,24 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { packageStatus, waitForNativePackages } from "./npm-registry.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const args = { artifacts: "", dryRun: false };
+const args = { artifacts: "", dryRun: false, resume: false };
 for (let index = 2; index < process.argv.length; index++) {
   if (process.argv[index] === "--dry-run") {
     args.dryRun = true;
+  } else if (process.argv[index] === "--resume") {
+    args.resume = true;
   } else if (process.argv[index] === "--artifacts" && process.argv[index + 1]) {
     args.artifacts = process.argv[++index];
   } else {
-    throw new Error("Usage: node scripts/publish-npm.mjs --artifacts DIR [--dry-run]");
+    throw new Error("Usage: node scripts/publish-npm.mjs --artifacts DIR [--dry-run] [--resume]");
   }
 }
 assert(args.artifacts, "--artifacts DIR is required");
 const artifacts = path.resolve(root, args.artifacts);
-const manifest = readJson(path.join(root, "package.json"));
+const manifest = readJson(process.env.RELEASE_MANIFEST || path.join(root, "package.json"));
 const targets = {
   "darwin-arm64": "aarch64-apple-darwin",
   "darwin-x64": "x86_64-apple-darwin",
@@ -111,72 +114,10 @@ function contents(archive, platform) {
   }).sort((left, right) => left.name.localeCompare(right.name));
 }
 
-async function waitForNativePackages(packages, {
-  timeoutMs = 10 * 60_000,
-  intervalMs = 10_000,
-  request = globalThis.fetch,
-  now = Date.now,
-  sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
-  log = console.log,
-} = {}) {
-  const started = now();
-  const deadline = started + timeoutMs;
-  const pending = new Map(packages.map((archive) => [archive.name, archive]));
-  const reasons = new Map();
-  let previousCount;
-  let lastProgress = started;
-  while (pending.size && now() < deadline) {
-    await Promise.all([...pending.values()].map(async (archive) => {
-      const remaining = deadline - now();
-      if (remaining <= 0) return;
-      let response;
-      let metadata;
-      try {
-        // Full packuments avoid cached 404s from the exact-version endpoint.
-        // Ask intermediary caches to revalidate on every poll.
-        response = await request(`https://registry.npmjs.org/${encodeURIComponent(archive.name)}`, {
-          headers: { accept: "application/json", "cache-control": "no-cache", pragma: "no-cache" },
-          cache: "no-store",
-          signal: AbortSignal.timeout(Math.max(1, Math.min(15_000, remaining))),
-        });
-        if (response.ok) metadata = await response.json();
-      } catch (error) {
-        reasons.set(archive.name, error.message);
-        return;
-      }
-      if (!response.ok) {
-        assert(response.status === 404 || response.status === 408 || response.status === 429 || response.status >= 500,
-          `Public npm registry returned HTTP ${response.status} for ${archive.name}`);
-        reasons.set(archive.name, `HTTP ${response.status}`);
-        return;
-      }
-      const version = metadata?.versions?.[archive.metadata.version];
-      if (!version) {
-        reasons.set(archive.name, `version ${archive.metadata.version} is not visible`);
-        return;
-      }
-      assert.equal(version.dist?.integrity, archive.integrity,
-        `Public npm integrity mismatch for ${archive.name}@${archive.metadata.version}`);
-      pending.delete(archive.name);
-      reasons.delete(archive.name);
-    }));
-    if (!pending.size) break;
-    if (pending.size !== previousCount || now() - lastProgress >= 60_000) {
-      log(`Waiting for ${pending.size} native npm package(s) to become public (${Math.floor((now() - started) / 1000)}s elapsed): ${[...pending.keys()].join(", ")}`);
-      previousCount = pending.size;
-      lastProgress = now();
-    }
-    const remaining = deadline - now();
-    if (remaining > 0) await sleep(Math.min(intervalMs, remaining));
-  }
-  assert(!pending.size, `Timed out waiting for public native npm packages after ${Math.floor((now() - started) / 1000)}s: ${[...pending.keys()].map((name) => `${name} (${reasons.get(name) ?? "not checked"})`).join(", ")}`);
-  log(`All ${packages.length} native npm package versions are public with matching integrity.`);
-}
-
 // Complete every check before constructing any npm process. In particular, a
 // late failure on the main package must not leave newly published native builds.
 const releases = new Map();
-let commit = process.env.GITHUB_SHA || undefined;
+let commit = process.env.RELEASE_SHA || process.env.GITHUB_SHA || undefined;
 for (const platform of required) {
   const directory = path.join(artifacts, `npm-${platform}`);
   const packageDirectory = path.join(directory, "npm");
@@ -185,7 +126,7 @@ for (const platform of required) {
   assert.equal(report.target, targets[platform], `Release target mismatch for ${platform}`);
   assert(typeof report.commit === "string" && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i.test(report.commit), `Invalid release commit for ${platform}`);
   commit ??= report.commit;
-  assert.equal(report.commit, commit, `Release commit mismatch for ${platform}${process.env.GITHUB_SHA ? " against GITHUB_SHA" : ""}`);
+  assert.equal(report.commit, commit, `Release commit mismatch for ${platform}${process.env.RELEASE_SHA || process.env.GITHUB_SHA ? " against the release source SHA" : ""}`);
   assert(Array.isArray(report.packages) && report.packages.length === 2, `Expected native and main tarballs for ${platform}`);
   const nativeName = `${manifest.name}-${platform}`;
   const nativeRecords = report.packages.filter((packed) => packed.name === nativeName);
@@ -233,6 +174,7 @@ for (const [platform, release] of releases) {
 const publish = [...required.map((platform) => releases.get(platform).native), chosenMain];
 console.log(`Validated ${required.length} platforms for ${manifest.name}@${manifest.version}, commit ${commit}.`);
 for (const [index, archive] of publish.entries()) {
+  if (args.resume && archive !== chosenMain) continue;
   console.log(`${index + 1}. npm publish ${JSON.stringify(archive.file)} --access public --provenance --ignore-scripts${args.dryRun ? " (dry run)" : ""}`);
 }
 
@@ -254,7 +196,23 @@ if (!args.dryRun) {
     assert(!result.signal && result.status === 0, `npm publish failed for ${archive.name} (status ${result.status}, signal ${result.signal})`);
   };
   const natives = publish.slice(0, -1);
-  for (const archive of natives) publishArchive(archive);
-  await waitForNativePackages(natives);
-  publishArchive(chosenMain);
+  if (!args.resume) {
+    for (const archive of natives) publishArchive(archive);
+  }
+  const ready = await waitForNativePackages(natives);
+  if (!ready) {
+    // EX_TEMPFAIL is distinct from invalid artifacts or a failed npm upload.
+    // The workflow schedules another check without repeating native uploads.
+    process.exitCode = 75;
+  } else {
+    const main = await packageStatus(chosenMain);
+    if (main.ready) {
+      console.log(`${chosenMain.name}@${manifest.version} is already published with matching integrity.`);
+    } else if (main.missing) {
+      publishArchive(chosenMain);
+    } else {
+      console.log(`Cannot confirm launcher state yet: ${main.reason}`);
+      process.exitCode = 75;
+    }
+  }
 }
