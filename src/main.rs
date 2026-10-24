@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use effect_tsrs::{CheckOptions, Location, Rule, check_project};
+use effect_tsrs::{CheckOptions, Location, Rule, Severity, check_project};
 
 #[global_allocator]
 static ALLOCATOR: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
@@ -17,10 +17,12 @@ fn main() {
 fn run() -> Result<i32, String> {
     let mut options = CheckOptions::default();
     let mut json = false;
+    let mut strict = false;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "diagnostics" => {}
+            "--strict" => strict = true,
             "-p" | "--project" => {
                 options.project = args.next().ok_or("--project requires a path")?.into();
             }
@@ -54,14 +56,15 @@ fn run() -> Result<i32, String> {
             }
             "-h" | "--help" => {
                 println!(
-                    "effect-tsrs diagnostics [-p tsconfig.json] [--format text|json]\n\
+                    "effect-tsrs diagnostics [-p tsconfig.json] [--format text|json] [--strict]\n\
                           \n\
                           Native Effect diagnostics for v3 and v4, powered by tsrs.\n\
                           --rules all|none|name[,name...] selects from all 130 rules.\n\
                           Default: Effect plugin options and original rule severities.\n\
                           --lspconfig JSON replaces the tsconfig plugin options.\n\
+                          --strict makes warnings fail the command without changing their severity.\n\
                           Use --rules none to measure the same compiler without Effect analysis.\n\
-                          Exit: 0 clean, 1 TypeScript or Effect errors, 2 invocation/compiler failure."
+                          Exit: 0 success, 1 TypeScript/Effect errors or warnings with --strict, 2 invocation/compiler failure."
                 );
                 return Ok(0);
             }
@@ -76,7 +79,15 @@ fn run() -> Result<i32, String> {
         }
     }
     let result = check_project(options)?;
-    let exit = i32::from(result.has_errors());
+    let exit = i32::from(
+        result.has_errors()
+            || (strict
+                && (result.summary.warnings != 0
+                    || result
+                        .typescript_diagnostics
+                        .iter()
+                        .any(|d| d.severity == Severity::Warning))),
+    );
     let mut output = io::BufWriter::new(io::stdout().lock());
     if json {
         serde_json::to_writer_pretty(&mut output, &result).map_err(|e| e.to_string())?;
