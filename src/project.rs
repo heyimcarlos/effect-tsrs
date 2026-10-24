@@ -1,18 +1,21 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use tsrs_ast::SourceFile;
 use tsrs_compiler::{
-    ProgramOptions, diagnosticwriter, new_compiler_host, new_program,
+    Program, ProgramOptions, diagnosticwriter, new_compiler_host, new_program,
     sort_and_deduplicate_diagnostics,
 };
 use tsrs_core::{P, TextRange, Tristate, context::Context};
-use tsrs_tsoptions::{ParseConfigHost, get_parsed_command_line_of_config_file};
+use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine, get_parsed_command_line_of_config_file};
 use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::{
     CheckOptions, CheckResult, CompilerDiagnostic, Diagnostic, Location, RelatedDiagnostic,
-    Severity, config as effect_config, rules,
+    Severity,
+    config::{self as effect_config, FileConfiguration},
+    rules::{self, RuleDiagnostic},
+    semantic::PackageCache,
 };
 
 pub(crate) struct ConfigHost {
@@ -31,13 +34,33 @@ impl ParseConfigHost for ConfigHost {
 }
 
 pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
-    check_with_fs(options, Arc::new(bundled::wrap_fs(osvfs::fs())), None)
+    check_with_fs(options, Arc::new(bundled::wrap_fs(osvfs::fs())), None, None)
+}
+
+fn configure_threads(
+    config: &mut ParsedCommandLine,
+    single_threaded: bool,
+    checker_limit: Option<std::num::NonZeroUsize>,
+) {
+    if !single_threaded && checker_limit.is_none() {
+        return;
+    }
+    let mut options = (*config.compiler_options().expect("parsed compiler options")).clone();
+    if single_threaded || checker_limit.is_some_and(|limit| limit.get() == 1) {
+        options.single_threaded = Tristate::True;
+    }
+    if let Some(limit) = checker_limit {
+        let limit = i64::try_from(limit.get()).unwrap_or(i64::MAX);
+        options.checkers = Some(options.checkers.unwrap_or(limit).min(limit));
+    }
+    config.set_compiler_options(P::new(options));
 }
 
 pub(crate) fn check_with_fs(
     options: CheckOptions,
     fs: Arc<dyn FS>,
     file_rules: Option<&std::collections::BTreeMap<String, Vec<crate::Rule>>>,
+    checker_limit: Option<std::num::NonZeroUsize>,
 ) -> Result<CheckResult, String> {
     let total_start = Instant::now();
     let cwd = std::env::current_dir().map_err(|e| e.to_string())?;
@@ -58,10 +81,11 @@ pub(crate) fn check_with_fs(
     result
         .typescript_diagnostics
         .extend(fatal.into_iter().map(compiler_diagnostic));
-    let Some(config) = config else {
+    let Some(mut config) = config else {
         result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
         return Ok(result);
     };
+    configure_threads(&mut config, options.single_threaded, checker_limit);
     let configuration = if file_rules.is_some() {
         effect_config::resolve_oxlint(&config, options.rules.as_deref().unwrap_or_default())?
     } else {
@@ -89,7 +113,6 @@ pub(crate) fn check_with_fs(
     let start = Instant::now();
     let compiler_host = new_compiler_host(&cwd, fs, &bundled::default_lib_path(), None, None, None);
     let mut program_options = ProgramOptions::new(P::new(config), compiler_host);
-    program_options.single_threaded = Tristate::True;
     program_options.canonical_diagnostics = false;
     if file_rules.is_some() {
         program_options.use_source_of_project_reference = true;
@@ -117,9 +140,9 @@ pub(crate) fn check_with_fs(
     }
     result.timings.typescript_ms += start.elapsed().as_secs_f64() * 1000.0;
 
-    let mut effect_version = None;
-    let mut packages = crate::semantic::PackageCache::default();
-
+    let start = Instant::now();
+    let mut files = Vec::new();
+    let mut file_configs = Vec::new();
     for &file in program.source_files() {
         if file.is_declaration_file() || program.is_source_file_from_external_library(file) {
             continue;
@@ -129,53 +152,42 @@ pub(crate) fn check_with_fs(
         if file_rules.is_some() && requested.is_none() {
             continue;
         }
-        result.summary.files_checked += 1;
-        let start = Instant::now();
         let mut file_config = configuration.for_file(file);
         if let Some(requested) = requested {
             file_config.enabled.retain(|rule| requested.contains(rule));
         }
-        if !file_config.enabled.is_empty() {
-            let effect_version =
-                effect_version.get_or_insert_with(|| detect_effect_version(program, &mut packages));
-            // Checker acquisition is exclusive. All program diagnostic collection
-            // is completed above, before holding any file's checker guard.
-            let mut checker = program.get_type_checker_for_file(&context, file);
-            for found in rules::analyze_file(
-                &mut checker,
-                program,
-                file,
-                &file_config.enabled,
-                &file_config.options,
-                effect_version,
-                &mut packages,
-            ) {
-                let Some(severity) = file_config.severity(
-                    found.rule,
-                    found
-                        .range
-                        .source_pos()
-                        .expect("diagnostic source position"),
-                ) else {
-                    continue;
-                };
-                result.diagnostics.push(Diagnostic {
-                    location: location(found.file, found.range),
-                    severity,
-                    code: found.code,
-                    name: found.rule.name(),
-                    message: found.message,
-                    related_information: found
-                        .related
-                        .into_iter()
-                        .map(|related| RelatedDiagnostic {
-                            location: location(related.file, related.range),
-                            code: related.code,
-                            message: related.message,
-                        })
-                        .collect(),
-                });
-            }
+        files.push(file);
+        file_configs.push(file_config);
+    }
+    result.summary.files_checked = files.len();
+    let analyses = analyze_files(program, &files, &file_configs);
+    for (mut file_config, found) in file_configs.into_iter().zip(analyses) {
+        for found in found {
+            let Some(severity) = file_config.severity(
+                found.rule,
+                found
+                    .range
+                    .source_pos()
+                    .expect("diagnostic source position"),
+            ) else {
+                continue;
+            };
+            result.diagnostics.push(Diagnostic {
+                location: location(found.file, found.range),
+                severity,
+                code: found.code,
+                name: found.rule.name(),
+                message: found.message,
+                related_information: found
+                    .related
+                    .into_iter()
+                    .map(|related| RelatedDiagnostic {
+                        location: location(related.file, related.range),
+                        code: related.code,
+                        message: related.message,
+                    })
+                    .collect(),
+            });
         }
         for diagnostic in file_config.finish() {
             result.diagnostics.push(Diagnostic {
@@ -190,8 +202,8 @@ pub(crate) fn check_with_fs(
                 related_information: Vec::new(),
             });
         }
-        result.timings.effect_ms += start.elapsed().as_secs_f64() * 1000.0;
     }
+    result.timings.effect_ms = start.elapsed().as_secs_f64() * 1000.0;
     result.typescript_diagnostics.extend(
         sort_and_deduplicate_diagnostics(&compiler_errors)
             .into_iter()
@@ -252,16 +264,47 @@ fn diagnostic_key(d: &Diagnostic) -> (&str, usize, usize, i32, &str, &str, &str)
     )
 }
 
+/// Runs each file's enabled rules on the checker that checked it, one thread per
+/// checker, like the compiler's own diagnostic passes. Results follow `files`.
+fn analyze_files(
+    program: &'static Program,
+    files: &[P<SourceFile>],
+    configs: &[FileConfiguration],
+) -> Vec<Vec<RuleDiagnostic>> {
+    let found: Vec<Mutex<Vec<RuleDiagnostic>>> = files.iter().map(|_| Mutex::default()).collect();
+    if configs.iter().any(|config| !config.enabled.is_empty()) {
+        let packages = PackageCache::new(program);
+        let effect_version = detect_effect_version(program, &packages);
+        let ran = program.for_each_checker_group(files, |checker, index, file| {
+            let config = &configs[index];
+            if config.enabled.is_empty() {
+                return;
+            }
+            *found[index].lock().unwrap() = rules::analyze_file(
+                checker,
+                program,
+                file,
+                &config.enabled,
+                &config.options,
+                &effect_version,
+                &packages,
+            );
+        });
+        assert!(ran, "programs from new_program own their checker pool");
+    }
+    found
+        .into_iter()
+        .map(|found| found.into_inner().unwrap())
+        .collect()
+}
+
 /// Preserve raw and exact detection; helpers choose the upstream fallback.
-fn detect_effect_version(
-    program: &tsrs_compiler::Program,
-    packages: &mut crate::semantic::PackageCache,
-) -> crate::EffectVersion {
+fn detect_effect_version(program: &Program, packages: &PackageCache) -> crate::EffectVersion {
     let mut detected = None;
     let mut exact = None;
     let mut conflicting_versions = false;
     for &file in program.source_files() {
-        let Some(package) = packages.get(program, file) else {
+        let Some(package) = packages.get(file) else {
             continue;
         };
         if package["name"] != "effect" {
@@ -332,5 +375,76 @@ fn compiler_diagnostic(d: P<tsrs_ast::Diagnostic>) -> CompilerDiagnostic {
             .file()
             .zip(d.loc())
             .map(|(file, range)| location(file, range)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::num::NonZeroUsize;
+
+    #[test]
+    fn thread_limits_reach_the_compiler_pool() {
+        let cwd = std::env::current_dir()
+            .unwrap()
+            .to_string_lossy()
+            .replace('\\', "/");
+        let names: Vec<_> = (0..8)
+            .map(|i| format!("{cwd}/thread-limit-{i}.ts"))
+            .collect();
+        let fs: Arc<dyn FS> = Arc::new(crate::overlay::Overlay {
+            base: Arc::new(bundled::wrap_fs(osvfs::fs())),
+            cwd: cwd.clone(),
+            files: names
+                .iter()
+                .map(|name| {
+                    (
+                        crate::overlay::path_key(name, &cwd),
+                        "export const n = 1;".into(),
+                    )
+                })
+                .collect(),
+        });
+        for (configured, config_single, cli_single, limit, expected, single) in [
+            (8, false, false, None, 8, false),
+            (8, false, false, Some(1), 1, true),
+            (8, false, false, Some(4), 4, false),
+            (2, false, false, Some(4), 2, false),
+            (8, true, false, Some(4), 1, true),
+            (8, false, true, None, 1, true),
+        ] {
+            let mut config = tsrs_tsoptions::new_parsed_command_line(
+                P::new(tsrs_core::CompilerOptions {
+                    no_lib: Tristate::True,
+                    checkers: Some(configured),
+                    single_threaded: if config_single {
+                        Tristate::True
+                    } else {
+                        Tristate::False
+                    },
+                    ..Default::default()
+                }),
+                names.clone(),
+                Vec::new(),
+                tsrs_core::tspath::ComparePathsOptions {
+                    current_directory: cwd.clone(),
+                    use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
+                },
+            );
+            configure_threads(&mut config, cli_single, limit.and_then(NonZeroUsize::new));
+            let host = new_compiler_host(
+                &cwd,
+                Arc::clone(&fs),
+                &bundled::default_lib_path(),
+                None,
+                None,
+                None,
+            );
+            let mut options = ProgramOptions::new(P::new(config), host);
+            options.canonical_diagnostics = false;
+            let program = new_program(options);
+            assert_eq!(program.single_threaded(), single);
+            assert_eq!(program.checker_count(), expected);
+        }
     }
 }
