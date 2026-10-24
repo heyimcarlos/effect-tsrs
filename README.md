@@ -131,7 +131,8 @@ Keep the version in `Cargo.toml`, `Cargo.lock`, `package.json`, and the native
 `Cargo.lock`. Push a matching
 `vX.Y.Z` tag to release. The `release-packages.yml` workflow builds and tests all
 five platforms, runs the complete rule comparison on macOS ARM64, and publishes
-the native packages before the launcher.
+the native packages. It waits for all five to become publicly available before
+publishing the launcher.
 
 Publishing uses npm's trusted publisher for `yielded-dev/effect-tsrs` and
 `release-packages.yml`, with GitHub OIDC and provenance. No npm token is needed.
