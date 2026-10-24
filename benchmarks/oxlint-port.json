@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-24T06:51:10.096Z",
+  "passed": true,
+  "versions": {
+    "effect": "4.0.6",
+    "oxlint": "1.89.0",
+    "tsgolint": "7.0.2004",
+    "effectTsgo": "0.56.0",
+    "node": "v24.22.1"
+  },
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "logicalCpus": 16
+  },
+  "measurement": {
+    "samplesPerVariant": 30,
+    "warmupsPerVariant": 3,
+    "processes": "Fresh processes with warm filesystem caches; interleaved tool and scenario order",
+    "workers": "Oxlint and each backend use one worker. Mixed Rust + Go can use two workers concurrently.",
+    "scope": "Complete Oxlint invocation including startup and JSON reporting. TypeScript compiler error reporting disabled.",
+    "rules": [
+      "floating-effect",
+      "async-function",
+      "unnecessary-pipe",
+      "catch-unfailable-effect",
+      "return-effect-in-gen",
+      "try-catch-in-effect-gen",
+      "global-console-in-effect",
+      "missing-return-yield-star",
+      "promise-in-effect-success",
+      "run-effect-inside-effect"
+    ],
+    "mixedAdds": "typescript/no-floating-promises",
+    "limits": [
+      "Synthetic repeated modules and one real application package on a shared M4 Max; not an editor latency measurement.",
+      "Mixed mode uses the stock Go backend for standard TypeScript rules and has higher total CPU cost.",
+      "The added TypeScript rule reports no extra findings on these timed workloads; positive standard-rule and autofix cases are covered by the integration verifier.",
+      "RSS is maximum individual-process resident memory, not the sum of overlapping processes."
+    ]
+  },
+  "binarySha256": "db54807431d8196e1462f817cec94fc851bfc443411ff40cc4744ea5ca5ca20c",
+  "launcherSha256": "e6d35888f8180d8e3ab41586b8fd62e4b21dfae403f9f4400a165c7bfeceec87",
+  "adapterSha256": "08df303104b4b188089fd55842994aa898ca4c62e1564203ece093f677006c72",
+  "frontendSha256": "f0d4d037664c66be02792e96a6d64a279b97169e3fdafe3329a7707f14493320",
+  "workloads": [
+    {
+      "name": "Generated Effect project",
+      "sourceFiles": 121,
+      "evidence": "artifacts/oxlint-synthetic-30/report.json",
+      "scenarios": [
+        {
+          "name": "effect-only",
+          "diagnostics": 1560,
+          "variants": {
+            "rust": {
+              "elapsedMs": {
+                "median": 151.708375,
+                "p95": 184.176334,
+                "min": 145.667958,
+                "max": 207.738292,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 140,
+                "p95": 160,
+                "min": 130,
+                "max": 169.99999999999997,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 70746112,
+                "p95": 71172096,
+                "min": 70598656,
+                "max": 71335936,
+                "samples": 30
+              }
+            },
+            "go": {
+              "elapsedMs": {
+                "median": 243.2368745,
+                "p95": 265.6745,
+                "min": 231.635625,
+                "max": 266.211917,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 230,
+                "p95": 250,
+                "min": 220,
+                "max": 250,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 153624576,
+                "p95": 154501120,
+                "min": 153092096,
+                "max": 154566656,
+                "samples": 30
+              }
+            }
+          },
+          "speedup": 1.6033186994455646
+        },
+        {
+          "name": "mixed",
+          "diagnostics": 1560,
+          "variants": {
+            "rust": {
+              "elapsedMs": {
+                "median": 209.263229,
+                "p95": 223.906083,
+                "min": 201.314834,
+                "max": 225.610625,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 300,
+                "p95": 320,
+                "min": 290.00000000000006,
+                "max": 340,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 131489792,
+                "p95": 131989504,
+                "min": 131170304,
+                "max": 132087808,
+                "samples": 30
+              }
+            },
+            "go": {
+              "elapsedMs": {
+                "median": 244.564458,
+                "p95": 253.5755,
+                "min": 235.908334,
+                "max": 261.906917,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 230,
+                "p95": 240,
+                "min": 220,
+                "max": 250,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 154025984,
+                "p95": 154877952,
+                "min": 153436160,
+                "max": 155009024,
+                "samples": 30
+              }
+            }
+          },
+          "speedup": 1.1686929384043865
+        }
+      ]
+    },
+    {
+      "name": "Application API",
+      "sourceFiles": 139,
+      "dependencyOverride": "Effect 4.0.6 in an isolated source snapshot",
+      "evidence": "artifacts/oxlint-application-api-30/report.json",
+      "scenarios": [
+        {
+          "name": "effect-only",
+          "diagnostics": 10,
+          "variants": {
+            "rust": {
+              "elapsedMs": {
+                "median": 2508.2255210000003,
+                "p95": 2550.562084,
+                "min": 2487.396417,
+                "max": 2582.4575,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 2480,
+                "p95": 2530.0000000000005,
+                "min": 2460,
+                "max": 2550.0000000000005,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 925089792,
+                "p95": 925122560,
+                "min": 925057024,
+                "max": 925122560,
+                "samples": 30
+              }
+            },
+            "go": {
+              "elapsedMs": {
+                "median": 7692.196854,
+                "p95": 8367.801416,
+                "min": 7374.97875,
+                "max": 8470.494208,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 7675,
+                "p95": 8350,
+                "min": 7350,
+                "max": 8450,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 3081224192,
+                "p95": 3311828992,
+                "min": 2460712960,
+                "max": 3316006912,
+                "samples": 30
+              }
+            }
+          },
+          "speedup": 3.066788368748122
+        },
+        {
+          "name": "mixed",
+          "diagnostics": 10,
+          "variants": {
+            "rust": {
+              "elapsedMs": {
+                "median": 7231.9419995,
+                "p95": 7454.438833,
+                "min": 6893.160333,
+                "max": 7488.02625,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 9755,
+                "p95": 9970,
+                "min": 9390,
+                "max": 9979.999999999998,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 2856148992,
+                "p95": 2972041216,
+                "min": 2161868800,
+                "max": 2977808384,
+                "samples": 30
+              }
+            },
+            "go": {
+              "elapsedMs": {
+                "median": 7756.7591875,
+                "p95": 8295.851334,
+                "min": 7374.558459,
+                "max": 8323.165958,
+                "samples": 30
+              },
+              "cpuMs": {
+                "median": 7735,
+                "p95": 8280,
+                "min": 7350,
+                "max": 8300,
+                "samples": 30
+              },
+              "maxRssBytes": {
+                "median": 3056443392,
+                "p95": 3291054080,
+                "min": 2356887552,
+                "max": 3302965248,
+                "samples": 30
+              }
+            }
+          },
+          "speedup": 1.0725693303453325
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "integration": "artifacts/verify-oxlint/report.json",
+    "installedPackage": "artifacts/verify-oxlint-package/report.json",
+    "configuration": "artifacts/verify-config/report.json"
+  }
+}

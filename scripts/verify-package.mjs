@@ -50,7 +50,7 @@ function execute(label, command, argv, cwd, options = {}) {
     encoding: "utf8",
     timeout: 120_000,
     maxBuffer: 16 * 1024 * 1024,
-    env: { ...process.env, npm_config_offline: "true", npm_config_ignore_scripts: "true" },
+    env: { ...process.env, npm_config_offline: "true", npm_config_ignore_scripts: "true", npm_config_cache: path.join(temporary, "npm-cache") },
     ...options,
   });
   fs.writeFileSync(path.join(output, `${label}.stdout.txt`), result.stdout ?? "");
@@ -153,6 +153,22 @@ try {
   assert.equal(invalid.status, 2, "Invalid arguments must preserve the native failure exit status");
   assert(invalid.stderr.includes("unknown argument: --not-a-real-option"));
   assert.equal(invalid.stdout, "");
+
+  // Copy only the consumer's stock Oxlint dependencies. The installed package
+  // must supply its own patched frontend; no @effect/tsgo is installed here.
+  const require = createRequire(import.meta.url);
+  const bindingTarget = `${target}${process.platform === "linux" ? "-gnu" : process.platform === "win32" ? "-msvc" : ""}`;
+  for (const name of ["oxlint", "oxlint-tsgolint", `@oxlint/binding-${bindingTarget}`, `@oxlint-tsgolint/${target}`]) {
+    fs.cpSync(path.dirname(require.resolve(`${name}/package.json`)), path.join(installation, "node_modules", name), { recursive: true });
+  }
+  const lintConfig = path.join(effectProject, ".oxlintrc.json");
+  writeJson(lintConfig, { plugins: ["effecttsgo", "typescript"], categories: { correctness: "off" }, rules: { "effecttsgo/floating-effect": "error", "typescript/no-floating-promises": "error" } });
+  fs.appendFileSync(path.join(effectProject, "main.ts"), "Promise.resolve(42)\n");
+  const lint = execute("oxlint", command, [...prefix, "oxlint", "--config", lintConfig, "--format", "json", path.join(effectProject, "main.ts")], installation);
+  assert.equal(lint.status, 1);
+  assert.deepEqual(JSON.parse(lint.stdout).diagnostics.map(d => d.code).sort(), ["effecttsgo(floating-effect)", "typescript(no-floating-promises)"]);
+  assert(fs.existsSync(path.join(packageDirectory, "oxlint-presets/recommended.json")));
+  assert(fs.existsSync(path.join(packageDirectory, "oxlint-schema.json")));
   report.version = metadata.version;
   report.passed = true;
   console.log(`Package verification passed for ${metadata.name}@${metadata.version} (${target}).`);

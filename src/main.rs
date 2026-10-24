@@ -8,6 +8,11 @@ static ALLOCATOR: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 fn main() {
     #[cfg(target_os = "linux")]
     tsrs_core::allocator::init_mimalloc();
+    if std::env::args().nth(1).as_deref() == Some("headless") {
+        std::process::exit(effect_tsrs::oxlint::run_headless(
+            std::env::args().skip(2).collect(),
+        ));
+    }
     std::process::exit(run().unwrap_or_else(|error| {
         eprintln!("effect-tsrs: {error}");
         2

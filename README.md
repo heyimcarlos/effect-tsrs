@@ -4,8 +4,8 @@ A Rust port of the [Effect Language Service diagnostics](https://github.com/Effe
 powered by [tsrs](https://github.com/oxc-project/tsrs). Provides all **130 diagnostic
 rules** for **Effect V4** and **Effect V3**.
 
-The current port provides a command-line diagnostic runner. Editor integration,
-quick fixes, refactors, and completions are available in the upstream
+The port provides a command-line diagnostic runner and Oxlint type-aware linting.
+Effect quick fixes, refactors, and completions are available in the upstream
 [`@effect/tsgo` language service](https://github.com/Effect-TS/tsgo).
 
 ## Installation
@@ -36,7 +36,59 @@ Keep npm optional dependencies enabled so the binary for your platform is instal
 Existing `@effect/language-service` plugin options in `tsconfig.json` are respected.
 See [Plugin Options](#plugin-options) to configure diagnostics.
 
-## Type-aware linter
+## Oxlint integration
+
+Install a supported Oxlint pair, then run it through the Rust adapter:
+
+```sh
+npm install --save-dev oxlint@1.89.0 oxlint-tsgolint@7.0.2004
+npx effect-tsrs oxlint .
+```
+
+Enable Effect rules in `.oxlintrc.json`. The `effecttsgo` namespace is retained for
+compatibility with existing configurations:
+
+```json
+{
+  "$schema": "./node_modules/@yielded/effect-tsrs/oxlint-schema.json",
+  "plugins": ["effecttsgo", "typescript"],
+  "rules": {
+    "effecttsgo/floating-effect": "error",
+    "effecttsgo/missing-star-in-yield-effect-gen": "error",
+    "typescript/no-floating-promises": "error"
+  }
+}
+```
+
+The adapter enables `--type-aware` automatically. Oxlint owns severities,
+per-file overrides, ignore patterns, and suppression comments. All 130 Effect
+rules run in Rust; other type-aware rules and `--type-check` use the installed
+`oxlint-tsgolint` backend concurrently. Effect behavior options and source
+directives remain supported; Oxlint rule selection overrides tsconfig diagnostic
+severities. Effect quick fixes, suggestions, and per-rule profiling are not ported.
+
+Presets are available as `@yielded/effect-tsrs/oxlint-presets` for JS/TS configs,
+or through `extends`, for example:
+`["./node_modules/@yielded/effect-tsrs/oxlint-presets/recommended.json"]`.
+
+For existing scripts or editor integrations that invoke Oxlint directly, run
+`npx effect-tsrs patch --oxlint`, then use `oxlint --type-aware` normally.
+`npx effect-tsrs unpatch --oxlint` restores the original package bytes. Reapply
+after reinstalling dependencies. Patching refuses shared symlink targets outside
+the project; `effect-tsrs oxlint` works without modifying installed packages.
+
+Supported versions: Oxlint **1.87.0–1.89.0**, oxlint-tsgolint **7.0.2003–7.0.2004**.
+The packaged frontend bindings come from `@effect/tsgo@0.56.0`; the Effect backend
+is this Rust port. Linux Oxlint integration requires glibc; the standalone
+diagnostic CLI also works with musl.
+
+From a source checkout, run `npm run build:release && npm run prepare:oxlint`,
+then `EFFECT_TSRS_BINARY="$PWD/target/release/effect-tsrs" node bin/effect-tsrs.js oxlint .`.
+Run `npm run verify:oxlint` for integration checks against Effect TSGO.
+`npm run verify:oxlint:all` compares all 614 fixture projects through the headless
+protocol, covering all 130 rules, including duplicate diagnostics and related ranges.
+
+## Standalone type-aware linter
 
 The CLI checks your TypeScript project and reports both TypeScript errors and
 Effect-specific diagnostics. Add it to your project scripts to run the same check

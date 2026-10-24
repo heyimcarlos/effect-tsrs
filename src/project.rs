@@ -15,9 +15,9 @@ use crate::{
     Severity, config as effect_config, rules,
 };
 
-struct ConfigHost {
-    cwd: String,
-    fs: Arc<dyn FS>,
+pub(crate) struct ConfigHost {
+    pub cwd: String,
+    pub fs: Arc<dyn FS>,
 }
 
 impl ParseConfigHost for ConfigHost {
@@ -31,6 +31,14 @@ impl ParseConfigHost for ConfigHost {
 }
 
 pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
+    check_with_fs(options, Arc::new(bundled::wrap_fs(osvfs::fs())), None)
+}
+
+pub(crate) fn check_with_fs(
+    options: CheckOptions,
+    fs: Arc<dyn FS>,
+    file_rules: Option<&std::collections::BTreeMap<String, Vec<crate::Rule>>>,
+) -> Result<CheckResult, String> {
     let total_start = Instant::now();
     let cwd = std::env::current_dir().map_err(|e| e.to_string())?;
     let mut path = cwd.join(&options.project);
@@ -38,7 +46,6 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
         path.push("tsconfig.json");
     }
     let cwd = cwd.to_string_lossy().into_owned();
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
     let host = ConfigHost {
         cwd: cwd.clone(),
         fs: Arc::clone(&fs),
@@ -55,11 +62,15 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
         result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
         return Ok(result);
     };
-    let configuration = effect_config::resolve(
-        &config,
-        options.lspconfig.as_deref(),
-        options.rules.as_deref(),
-    )?;
+    let configuration = if file_rules.is_some() {
+        effect_config::resolve_oxlint(&config, options.rules.as_deref().unwrap_or_default())?
+    } else {
+        effect_config::resolve(
+            &config,
+            options.lspconfig.as_deref(),
+            options.rules.as_deref(),
+        )?
+    };
     result.timings.config_ms = start.elapsed().as_secs_f64() * 1000.0;
     result
         .typescript_diagnostics
@@ -80,6 +91,9 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
     let mut program_options = ProgramOptions::new(P::new(config), compiler_host);
     program_options.single_threaded = Tristate::True;
     program_options.canonical_diagnostics = false;
+    if file_rules.is_some() {
+        program_options.use_source_of_project_reference = true;
+    }
     // Keep the AST and checker alive for the Effect pass after checking.
     // ProgramOptions::new already disables leaf reclamation and checker recycling.
     let program = new_program(program_options);
@@ -88,10 +102,19 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
 
     let start = Instant::now();
     let mut compiler_errors = program.get_config_file_parsing_diagnostics();
-    compiler_errors.extend(program.get_syntactic_diagnostics(&context, None));
-    compiler_errors.extend(program.get_global_diagnostics(&context));
     compiler_errors.extend(program.get_program_diagnostics());
-    compiler_errors.extend(program.get_semantic_diagnostics(&context, None));
+    if file_rules.is_some() {
+        result
+            .program_diagnostics
+            .extend(compiler_errors.iter().copied().map(compiler_diagnostic));
+        if !compiler_errors.is_empty() {
+            return Ok(result);
+        }
+    } else {
+        compiler_errors.extend(program.get_syntactic_diagnostics(&context, None));
+        compiler_errors.extend(program.get_global_diagnostics(&context));
+        compiler_errors.extend(program.get_semantic_diagnostics(&context, None));
+    }
     result.timings.typescript_ms += start.elapsed().as_secs_f64() * 1000.0;
 
     let mut effect_version = None;
@@ -101,9 +124,17 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
         if file.is_declaration_file() || program.is_source_file_from_external_library(file) {
             continue;
         }
+        let requested = file_rules
+            .and_then(|files| files.get(&crate::overlay::path_key(file.file_name(), &cwd)));
+        if file_rules.is_some() && requested.is_none() {
+            continue;
+        }
         result.summary.files_checked += 1;
         let start = Instant::now();
         let mut file_config = configuration.for_file(file);
+        if let Some(requested) = requested {
+            file_config.enabled.retain(|rule| requested.contains(rule));
+        }
         if !file_config.enabled.is_empty() {
             let effect_version =
                 effect_version.get_or_insert_with(|| detect_effect_version(program, &mut packages));
@@ -169,34 +200,35 @@ pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
     result
         .diagnostics
         .sort_by(|a, b| diagnostic_key(a).cmp(&diagnostic_key(b)));
-    // As in the compiler, equal primary diagnostics merge their related
-    // information before the final summary is counted.
-    result.diagnostics.dedup_by(|later, earlier| {
-        if diagnostic_key(later) != diagnostic_key(earlier) {
-            return false;
-        }
-        earlier
-            .related_information
-            .append(&mut later.related_information);
-        earlier.related_information.sort_by(|a, b| {
-            (
-                &a.location.file,
-                a.location.start,
-                a.location.length,
-                a.code,
-                &a.message,
-            )
-                .cmp(&(
-                    &b.location.file,
-                    b.location.start,
-                    b.location.length,
-                    b.code,
-                    &b.message,
-                ))
+    // The compiler merges equal diagnostics; Oxlint preserves each emission.
+    if file_rules.is_none() {
+        result.diagnostics.dedup_by(|later, earlier| {
+            if diagnostic_key(later) != diagnostic_key(earlier) {
+                return false;
+            }
+            earlier
+                .related_information
+                .append(&mut later.related_information);
+            earlier.related_information.sort_by(|a, b| {
+                (
+                    &a.location.file,
+                    a.location.start,
+                    a.location.length,
+                    a.code,
+                    &a.message,
+                )
+                    .cmp(&(
+                        &b.location.file,
+                        b.location.start,
+                        b.location.length,
+                        b.code,
+                        &b.message,
+                    ))
+            });
+            earlier.related_information.dedup();
+            true
         });
-        earlier.related_information.dedup();
-        true
-    });
+    }
     for diagnostic in &result.diagnostics {
         match diagnostic.severity {
             Severity::Error => result.summary.errors += 1,

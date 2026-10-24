@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 // Package one native build and the common launcher. The release workflow runs
 // this on each supported platform, then tests these exact tarballs.
+import { copyOxlintArtifacts } from "./oxlint-artifacts.mjs";
+
 const root = fileURLToPath(new URL("../", import.meta.url));
 const targets = {
   "aarch64-apple-darwin": { os: "darwin", cpu: "arm64" },
@@ -41,6 +43,7 @@ const executable = `effect-tsrs${target.os === "win32" ? ".exe" : ""}`;
 fs.mkdirSync(path.join(staging, "bin"), { recursive: true });
 fs.copyFileSync(binary, path.join(staging, "bin", executable));
 fs.chmodSync(path.join(staging, "bin", executable), 0o755);
+copyOxlintArtifacts(path.join(staging, "oxlint"), `${target.os}-${target.cpu}`);
 for (const file of ["LICENSE", "THIRD-PARTY-NOTICES"]) {
   fs.copyFileSync(path.join(root, file), path.join(staging, file));
 }
@@ -55,7 +58,7 @@ fs.writeFileSync(path.join(staging, "package.json"), `${JSON.stringify({
   bugs: manifest.bugs,
   os: [target.os],
   cpu: [target.cpu],
-  files: ["bin/", "LICENSE", "THIRD-PARTY-NOTICES"],
+  files: ["bin/", "oxlint/", "LICENSE", "THIRD-PARTY-NOTICES"],
   publishConfig: { access: "public" },
 }, null, 2)}\n`);
 

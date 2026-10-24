@@ -164,6 +164,19 @@ for (const platform of required) {
   assert(Array.isArray(configCheck.cases) && configCheck.cases.length >= 10 && configCheck.cases.every((test) => test.passed === true), `Incomplete config verification for ${platform}`);
   assert.equal(new Set(configCheck.cases.map((test) => test.name)).size, configCheck.cases.length, `Duplicate config checks for ${platform}`);
   assert.equal(configCheck.binary?.sha256, report.binarySha256, `Config verification used another executable for ${platform}`);
+  if (manifest.exports?.["./oxlint-schema.json"]) {
+    const oxlintCheck = readJson(path.join(directory, "verify-oxlint/report.json"));
+    assert.equal(oxlintCheck.passed, true, `Oxlint verification failed for ${platform}`);
+    assert.equal(oxlintCheck.binarySha256, report.binarySha256, `Oxlint verification used another executable for ${platform}`);
+    if (platform === "darwin-arm64") {
+      const oxlintAll = readJson(path.join(directory, "verify-oxlint-all/report.json"));
+      assert.equal(oxlintAll.passed, true, "Oxlint rule parity verification failed");
+      assert.equal(oxlintAll.binarySha256, report.binarySha256, "Oxlint rule parity used another executable");
+      assert.equal(oxlintAll.expectedPairs, 4263, "Incomplete Oxlint rule-fixture matrix");
+      assert.equal(oxlintAll.results?.length, 614, "Incomplete Oxlint fixture matrix");
+      assert.equal(Object.keys(oxlintAll.coverage ?? {}).length, 130, "Incomplete positive Oxlint rule coverage");
+    }
+  }
   releases.set(platform, { native, main });
 }
 const chosenMain = releases.get("darwin-arm64").main;

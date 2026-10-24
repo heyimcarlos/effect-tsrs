@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { createRequire } from "node:module";
 import { constants } from "node:os";
+import { pathToFileURL } from "node:url";
+import { nativeExecutable } from "./native.mjs";
+import { oxlintCommand, patchOxlint } from "./oxlint.mjs";
 
 const targets = new Set([
   "darwin-arm64",
@@ -17,7 +19,13 @@ function fail(message) {
   process.exitCode = 1;
 }
 
-function main() {
+async function main() {
+  const args = process.argv.slice(2);
+  if (["patch", "unpatch"].includes(args[0])) {
+    if (args.length !== 2 || args[1] !== "--oxlint") throw new Error("Usage: effect-tsrs patch|unpatch --oxlint");
+    for (const file of patchOxlint(nativeExecutable(), args[0] === "unpatch")) console.log(`${args[0] === "unpatch" ? "Restored" : "Patched"} ${file}`);
+    return;
+  }
   const target = `${process.platform}-${process.arch}`;
   if (!targets.has(target)) {
     fail(`Unsupported platform ${target}. Supported platforms: ${[...targets].join(", ")}.`);
@@ -25,18 +33,20 @@ function main() {
   }
 
   const packageName = `@yielded/effect-tsrs-${target}`;
-  const binaryName = process.platform === "win32" ? "effect-tsrs.exe" : "effect-tsrs";
-  let executable;
-  try {
-    executable = createRequire(import.meta.url).resolve(`${packageName}/bin/${binaryName}`);
-  } catch (error) {
-    fail(`Cannot find the native executable in ${packageName}. Reinstall @yielded/effect-tsrs with optional dependencies enabled for ${target} (do not use --omit=optional). ${error.message}`);
+  const executable = nativeExecutable();
+  if (args[0] === "oxlint") {
+    const command = oxlintCommand(executable, args.slice(1));
+    Object.assign(process.env, command.env);
+    process.argv = [process.execPath, ...command.args];
+    await import(pathToFileURL(command.args[0]).href);
     return;
   }
+  const command = { command: executable, args, env: process.env };
 
-  const child = spawn(executable, process.argv.slice(2), {
+  const child = spawn(command.command, command.args, {
     stdio: "inherit",
     cwd: process.cwd(),
+    env: command.env,
   });
   const signals = ["SIGINT", "SIGTERM", "SIGHUP"];
   const forward = new Map(signals.map((signal) => [signal, () => child.kill(signal)]));
@@ -66,4 +76,4 @@ function main() {
   });
 }
 
-main();
+main().catch(error => fail(error.message));

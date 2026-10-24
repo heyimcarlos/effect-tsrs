@@ -4,6 +4,8 @@
 //! CLI processes, not repeated project rebuilds in a language server.
 
 mod config;
+mod overlay;
+pub mod oxlint;
 mod project;
 mod rules;
 
@@ -64,7 +66,7 @@ impl Default for CheckOptions {
 }
 
 /// Offsets and lengths are UTF-16 code units. Lines and columns are one-based.
-#[derive(Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Location {
     pub file: String,
@@ -96,7 +98,7 @@ pub struct RelatedDiagnostic {
     pub message: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CompilerDiagnostic {
     pub code: i32,
     pub severity: Severity,
@@ -131,6 +133,8 @@ pub struct CheckResult {
     pub typescript_diagnostics: Vec<CompilerDiagnostic>,
     pub summary: Summary,
     pub timings: Timings,
+    #[serde(skip)]
+    pub(crate) program_diagnostics: Vec<CompilerDiagnostic>,
 }
 
 impl CheckResult {
