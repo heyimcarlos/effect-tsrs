@@ -181,6 +181,37 @@ pub(crate) fn resolve(
     })
 }
 
+/// Oxlint owns rule selection and severity. Preserve the Effect behavior options
+/// and source directives, but ignore tsconfig severity/disable settings, as the
+/// upstream Oxlint runner does.
+pub(crate) fn resolve_oxlint(
+    config: &ParsedCommandLine,
+    rules: &[Rule],
+) -> Result<Configuration, String> {
+    let mut plugin = configured_plugin(config).unwrap_or_default();
+    plugin.insert("diagnostics".into(), json!(true));
+    plugin.insert("includeSuggestionsInTsc".into(), json!(true));
+    let mut levels = Map::new();
+    for rule in rules {
+        levels.insert(rule.name().into(), json!("error"));
+    }
+    levels.insert("unusedDirective".into(), json!("off"));
+    levels.insert("unknownRuleName".into(), json!("off"));
+    plugin.insert("diagnosticSeverity".into(), Value::Object(levels));
+    if let Some(overrides) = plugin.get_mut("overrides").and_then(Value::as_array_mut) {
+        for scope in overrides {
+            if let Some(options) = scope.get_mut("options").and_then(Value::as_object_mut) {
+                options.remove("diagnosticSeverity");
+            }
+        }
+    }
+    resolve(
+        config,
+        Some(&Value::Object(plugin).to_string()),
+        Some(rules),
+    )
+}
+
 impl Configuration {
     pub(crate) fn diagnostics(&self) -> &[ConfigDiagnostic] {
         &self.diagnostics

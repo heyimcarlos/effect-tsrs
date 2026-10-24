@@ -716,7 +716,14 @@ impl<'a, 'b> Analysis<'a, 'b> {
             }
         }
         let annotation = raw.declaration().and_then(|node| node.type_node());
-        if annotation.is_none_or(|node| self.annotation_safe(node)) {
+        if signature.resolved_return_type.get().is_some()
+            || match annotation {
+                Some(node) => self.annotation_safe(node),
+                None => raw
+                    .declaration()
+                    .is_some_and(|node| self.inference_safe(node)),
+            }
+        {
             let result = self.ctx.checker.get_return_type_of_signature(signature);
             self.ty(Some(result), Inspection::Shallow);
             self.provenance(annotation, result);
@@ -810,7 +817,29 @@ impl<'a, 'b> Analysis<'a, 'b> {
     }
 
     fn symbol_resolution_safe(&mut self, symbol: P<Symbol>) -> bool {
+        if self
+            .ctx
+            .checker
+            .value_symbol_links
+            .try_get_if_id_assigned(symbol)
+            .is_some_and(|links| links.resolved_type.get().is_some())
+        {
+            return true;
+        }
         symbol.declarations().iter().all(|declaration| {
+            if declaration.type_node().is_none()
+                && (declaration.function_like_data().is_none()
+                    || matches!(declaration.kind(), Kind::GetAccessor | Kind::SetAccessor))
+                && !matches!(
+                    declaration.kind(),
+                    Kind::ClassDeclaration
+                        | Kind::ClassExpression
+                        | Kind::InterfaceDeclaration
+                        | Kind::EnumDeclaration
+                )
+            {
+                return self.inference_safe(*declaration);
+            }
             declaration.type_node().is_none_or(|node| {
                 // Reading a generic alias's own deferred conditional creates
                 // the conditional shell, without evaluating either branch.
@@ -820,6 +849,19 @@ impl<'a, 'b> Analysis<'a, 'b> {
                     && self.raw_deferred_conditional(node))
                     || self.annotation_safe(node)
             })
+        })
+    }
+
+    // Oxlint requests rules outside the compiler's source-check lifecycle.
+    // Like TSGO, inspect cached or annotated types there without starting
+    // speculative inference of an initializer, parameter default, or body.
+    fn inference_safe(&self, declaration: P<Node>) -> bool {
+        ast::get_source_file_of_node(declaration).is_some_and(|file| {
+            self.ctx
+                .checker
+                .source_file_links
+                .try_get(file)
+                .is_some_and(|links| links.type_checked.get())
         })
     }
 

@@ -117,6 +117,17 @@ jobs:
         run: |
           npm run fixtures:install
           npm run verify:all -- --binary target/aarch64-apple-darwin/release/effect-tsrs --output artifacts/all-rules/release --jobs 4
+      - name: Check Oxlint integration
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          extension=
+          [ "$RUNNER_OS" != Windows ] || extension=.exe
+          node scripts/prepare-oxlint.mjs "target/$TARGET/oxlint"
+          npm run verify:oxlint -- --binary "target/$TARGET/release/effect-tsrs$extension"
+      - name: Check all 130 rules through the Oxlint protocol
+        if: matrix.platform == 'darwin-arm64'
+        run: npm run verify:oxlint:all -- --binary target/aarch64-apple-darwin/release/effect-tsrs --output artifacts/verify-oxlint-all --jobs 4
       - name: Pack npm tarballs
         env:
           TARGET: ${{ matrix.target }}
@@ -139,6 +150,8 @@ jobs:
             artifacts/npm/*.tgz
             artifacts/npm/package-*.json
             artifacts/verify-package/
+            artifacts/verify-oxlint/report.json
+            artifacts/verify-oxlint-all/report.json
             artifacts/verify-config/report.json
             artifacts/verify-config/cases/*/results/**
             artifacts/all-rules/release/report.json
@@ -155,6 +168,9 @@ jobs:
             artifacts/verify-config/report.json
             artifacts/verify-config/cases/*/results/**
             artifacts/verify-package/
+            artifacts/verify-oxlint/
+            artifacts/verify-oxlint-all/**/*.json
+            artifacts/verify-oxlint-all/**/*.stderr.txt
           if-no-files-found: ignore
 
   publish:

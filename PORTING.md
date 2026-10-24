@@ -2,8 +2,9 @@
 
 All 130 registered diagnostic rules have native Rust implementations. The port
 shares semantic helpers across rule families, supports Effect v3/v4 recognition,
-and retains the source diagnostic templates. Go is only a differential-testing
-oracle; the built executable does not launch it.
+and retains the source diagnostic templates. The standalone CLI and Oxlint Effect
+rules execute entirely in Rust. In Oxlint mode, ordinary TypeScript rules and
+`--type-check` delegate to the consumer's stock Go backend concurrently.
 
 ## Build from source
 
@@ -29,6 +30,8 @@ unexpected revision or incompatible patch. Builds also perform this check.
 | --- | --- |
 | CLI, output formats, exit codes | `src/main.rs`, `src/lib.rs` |
 | Config parsing, compiler program, checking, UTF-16 locations | `src/project.rs` |
+| Oxlint headless protocol, project discovery, UTF-8 output | `src/oxlint.rs`, `src/overlay.rs` |
+| Oxlint wrapper, version validation, reversible patching | `bin/oxlint.mjs` |
 | Effect options, inheritance, file overrides, directives | `src/config.rs` |
 | Complete rule registry and defaults | `src/registry.rs` |
 | Package/export identity, types, generator context, pipe/flow recognition | `src/semantic/` |
@@ -75,6 +78,74 @@ No checker is recycled or AST reclaimed before analysis. Like tsrs's CLI, checki
 runs on a thread with a 512 MiB reserved stack. The process lifetime owns the arenas;
 this API is not a repeated-rebuild language-server implementation.
 
+## Oxlint boundary
+
+The npm launcher loads a version-matched frontend binding from `@effect/tsgo@0.56.0`
+to register the `effecttsgo/*` rules. `scripts/oxlint-artifacts.mjs` copies only
+these frontend bindings into the native packages. Schema and presets retain the
+upstream names. Supported frontend/backend versions are pinned in
+`bin/oxlint-metadata.json`; unsupported versions fail before patching.
+
+`effect-tsrs headless` accepts Oxlint protocol v2 and emits its length-prefixed
+binary JSON frames. It discovers projects and references per input file, creates
+an inferred project for excluded files, and overlays unsaved sources without
+writing them to disk. Oxlint owns rule severity, suppression and formatting.
+Lint mode requests types as needed rather than running a full compiler check.
+Compiler checks required internally by individual Effect rules remain intact.
+The headless path preserves duplicate emissions. Stability analysis reads cached
+or annotated types without speculatively inferring unchecked initializers and bodies.
+
+Generic rules and explicit TypeScript checking are delegated to the installed
+`oxlint-tsgolint` binary. Its output is buffered while the Rust pass runs so frames
+cannot interleave. The wrapper uses environment overrides; optional patching
+preserves byte-for-byte backups, rejects conflicting edits, and restores original
+files on failure. Effect fixes/suggestions and per-rule timings remain unported.
+
+```sh
+npm run prepare:oxlint
+npm run verify:oxlint
+npm run verify:oxlint:all
+npm run bench:oxlint -- --project path/to/app --samples 30 --warmup 3
+```
+
+`verify:oxlint` checks the actual Oxlint frontend against the Go oracle, including
+mixed rules, severities, overrides, comments, related ranges, unsaved Unicode
+sources/imports, inferred projects, references, config errors, standard fixes and
+patch/unpatch. `verify:package` checks an offline install without `@effect/tsgo`.
+`verify:oxlint:all` groups the 4,263 relevant rule/fixture pairs into 614 projects
+and compares diagnostic messages, byte ranges, duplicates and related labels.
+Release CI requires all 130 rules to have positive oracle coverage and checks
+that the verified executable is the one being packaged.
+
+### Oxlint measurements
+
+With Effect 4.0.6, Oxlint 1.89.0 and oxlint-tsgolint 7.0.2004, 30 interleaved
+samples per variant after three warmups gave the following complete-command
+medians on an Apple M4 Max. Both tools returned identical diagnostics on every
+run. Ten Effect rules were selected; mixed mode also enabled
+`typescript/no-floating-promises`.
+
+| Workload | Mode | Rust adapter | Effect TSGO | Speedup |
+| --- | --- | ---: | ---: | ---: |
+| Generated, 121 files | Effect only | 151.7 ms | 243.2 ms | 1.60× |
+| Generated, 121 files | Mixed | 209.3 ms | 244.6 ms | 1.17× |
+| Application API, 139 files | Effect only | 2,508.2 ms | 7,692.2 ms | 3.07× |
+| Application API, 139 files | Mixed | 7,231.9 ms | 7,756.8 ms | 1.07× |
+
+The app used an isolated source snapshot, with Effect overridden to 4.0.6. The timed workloads emitted 1,560 and 10 findings respectively. The added
+TypeScript rule produced no extra findings; integration checks separately verify
+positive TypeScript diagnostics and fixes.
+
+Each backend used one worker. Mixed mode runs Rust and Go concurrently and used
+30% more total CPU on the generated project and 26% more on the app. Its smaller
+elapsed time comes with that resource cost. Reported RSS measures the largest
+individual process, not combined memory across both engines. These results cover
+fresh CLI processes with warm filesystem caches, not editor latency.
+
+[Compact evidence, p95s, hashes and raw-report paths](benchmarks/oxlint-port.json).
+These measurements identify the pre-release executable by hash; they predate the
+final duplicate-emission and unchecked stability-analysis parity corrections.
+
 ## Verification
 
 ```sh
@@ -115,6 +186,35 @@ denied also passed. [Retained verification](fixtures/all/verification.json) iden
 the source tree, executable, upstream revisions, and per-rule coverage.
 
 ## Performance
+
+For a repeated comparison of ten representative diagnostics individually and
+together, run `npm run bench:diagnostics`. Defaults are 120 generated modules,
+three warmups and 30 measured runs per selection and implementation. Override
+with `-- --modules 120 --samples 30 --warmup 3`. The same project is used for
+every selection; exact Effect output, file counts and ordinary TypeScript
+correctness are checked before timing, and every measured output is validated.
+Selection order rotates and native process order alternates. Reports include
+median, p95, range, memory, raw outputs and binary hashes under
+`artifacts/ten-diagnostics-*`. macOS memory collection requires permission to
+read the `/usr/bin/time -l` system counters.
+
+This ten-rule harness keeps `skipDisabledOptimization: false`, so both tools
+skip disabled rules. The older harness and historical results below use `true`,
+which makes the Go runner execute disabled rules and filter their output;
+the Rust `--rules` selection still limits execution. Do not interpret those
+historical subset timings as matching the set of executed rules. All timings
+are whole CLI invocations, not isolated rule costs or editor response times.
+
+To run the same ten rules together against an application, use
+`npm run bench:project -- --project /path/to/tsconfig.json`. This keeps the
+application source/configuration intact and overrides only diagnostic options
+for the command. It validates selected Effect output across implementations
+and checks each implementation's output stays stable over 30 measured runs.
+Existing TypeScript errors are recorded, not suppressed. TSGO targets configured
+root files, including declarations; TSRS visits non-declaration, non-external
+program files, so their reported file counts can differ. These remain CLI
+comparisons with different total work. Optional `--provenance /path/to/snapshot.json`
+records an application's revision and dependency setup with the report.
 
 The benchmark generates 120 Effect modules and a shared re-export module. It
 checks exact diagnostics and ordinary TypeScript correctness before collecting
