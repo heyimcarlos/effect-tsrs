@@ -5,6 +5,24 @@ shares semantic helpers across rule families, supports Effect v3/v4 recognition,
 and retains the source diagnostic templates. Go is only a differential-testing
 oracle; the built executable does not launch it.
 
+## Build from source
+
+Requires rustup, a C compiler, CMake, and Node/npm. The build wrapper selects the
+pinned Rust toolchain and verifies the pinned tsrs checkout and compiler patch.
+
+```sh
+rustup toolchain install 1.99.1 --profile minimal --component clippy --component rustfmt
+npm ci --ignore-scripts
+npm run setup
+npm run build:release
+
+./target/release/effect-tsrs diagnostics -p /path/to/tsconfig.json --format json
+```
+
+`npm run setup` creates `.repos/tsrs` at the revision in `upstream.json` and applies
+`patches/checker-extensions.patch`. It preserves local changes and rejects an
+unexpected revision or incompatible patch. Builds also perform this check.
+
 ## Structure
 
 | Responsibility | Implementation |
@@ -58,6 +76,15 @@ runs on a thread with a 512 MiB reserved stack. The process lifetime owns the ar
 this API is not a repeated-rebuild language-server implementation.
 
 ## Verification
+
+```sh
+npm run check
+npm test
+npm run verify -- --binary target/release/effect-tsrs
+npm run verify:config -- --binary target/release/effect-tsrs
+npm run fixtures:install
+npm run verify:all
+```
 
 The matrix covers every one of the 612 copied upstream fixtures, plus v3/v4 clean
 controls. Every rule needs positive reference coverage; empty output alone does
@@ -124,3 +151,18 @@ The diagnostic rules and their configuration are implemented here. Integrating
 these results into tsrs's own command-line driver or language server, preserving
 watch/snapshot lifetimes, and porting editor actions are separate changes. No quick
 fixes, refactors, completions, or hover providers are supplied by this CLI.
+
+## Releasing
+
+Keep the version in `Cargo.toml`, `Cargo.lock`, `package.json`, and the native
+`optionalDependencies` in sync, then update `package-lock.json`. Regenerate
+`THIRD-PARTY-NOTICES` with `node scripts/third-party-notices.mjs` after changing
+`Cargo.lock`. Push a matching
+`vX.Y.Z` tag to release. The `release-packages.yml` workflow builds and tests all
+five platforms, runs the complete rule comparison on macOS ARM64, and publishes
+the native packages. It waits for all five to become publicly available before
+publishing the launcher.
+
+Publishing uses npm's trusted publisher for `yielded-dev/effect-tsrs` and
+`release-packages.yml`, with GitHub OIDC and provenance. No npm token is needed.
+Manually dispatching the workflow builds and verifies packages without publishing.
