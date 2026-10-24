@@ -1,3 +1,4 @@
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -34,7 +35,126 @@ impl ParseConfigHost for ConfigHost {
 }
 
 pub(crate) fn check(options: CheckOptions) -> Result<CheckResult, String> {
-    check_with_fs(options, Arc::new(bundled::wrap_fs(osvfs::fs())), None, None)
+    let total_start = Instant::now();
+    let cwd = std::env::current_dir()
+        .map_err(|e| e.to_string())?
+        .to_string_lossy()
+        .into_owned();
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
+    let host = ConfigHost {
+        cwd: cwd.clone(),
+        fs: Arc::clone(&fs),
+    };
+    let mut path = std::path::Path::new(&cwd).join(&options.project);
+    if path.is_dir() {
+        path.push("tsconfig.json");
+    }
+    let mut queue = VecDeque::from([path.to_string_lossy().into_owned()]);
+    let mut projects = BTreeSet::new();
+    let mut loaded = BTreeMap::new();
+    let mut targets = BTreeSet::new();
+    let mut result = CheckResult::default();
+    while let Some(path) = queue.pop_front() {
+        if !projects.insert(crate::overlay::path_key(&path, &cwd)) {
+            continue;
+        }
+        let start = Instant::now();
+        let (config, fatal) =
+            get_parsed_command_line_of_config_file(&path, None, None, &host, None);
+        result.timings.config_ms += start.elapsed().as_secs_f64() * 1000.0;
+        if options.type_check {
+            result
+                .typescript_diagnostics
+                .extend(fatal.into_iter().map(compiler_diagnostic));
+        }
+        let Some(config) = config else {
+            continue;
+        };
+        if !config
+            .compiler_options()
+            .is_some_and(|options| options.disable_referenced_project_load.is_true())
+        {
+            queue.extend(config.resolved_project_reference_paths().iter().cloned());
+        }
+        targets.extend(
+            config
+                .file_names()
+                .iter()
+                .map(|file| crate::overlay::path_key(file, &cwd)),
+        );
+        let start = Instant::now();
+        let program = create_program(&host, config, options.single_threaded, None);
+        result.timings.program_ms += start.elapsed().as_secs_f64() * 1000.0;
+        loaded.insert(crate::overlay::path_key(&path, &cwd), program);
+    }
+    let loaded: Vec<_> = loaded.into_values().collect();
+    let mut selected = vec![BTreeSet::new(); loaded.len()];
+    for file in &targets {
+        let candidates: Vec<_> = loaded
+            .iter()
+            .enumerate()
+            .filter(|(_, program)| program.get_source_file(file).is_some())
+            .collect();
+        let mut direct = candidates.iter().filter(|(_, program)| {
+            !program.is_source_from_project_reference(&program.to_path(file))
+        });
+        let owner = match (direct.next(), direct.next()) {
+            (Some(owner), None) => Some(owner),
+            _ => candidates.first(),
+        };
+        if let Some(&(owner, _)) = owner {
+            selected[owner].insert(file.clone());
+        }
+    }
+    result.summary.total_files = targets.len();
+    for (program, roots) in loaded.into_iter().zip(selected) {
+        let checked = check_program(&options, program, None, Some(&roots))?;
+        result.diagnostics.extend(checked.diagnostics);
+        result
+            .typescript_diagnostics
+            .extend(checked.typescript_diagnostics);
+        result.summary.files_checked += checked.summary.files_checked;
+        result.summary.files_without_plugin += checked.summary.files_without_plugin;
+        result.summary.errors += checked.summary.errors;
+        result.summary.warnings += checked.summary.warnings;
+        result.summary.messages += checked.summary.messages;
+        result.timings.config_ms += checked.timings.config_ms;
+        result.timings.program_ms += checked.timings.program_ms;
+        result.timings.typescript_ms += checked.timings.typescript_ms;
+        result.timings.effect_ms += checked.timings.effect_ms;
+    }
+    if targets.is_empty() && !options.type_check {
+        return Err(
+            "No files to check. Please provide an existing .ts file or a project tsconfig.json"
+                .into(),
+        );
+    }
+    result
+        .diagnostics
+        .sort_by(|a, b| diagnostic_key(a).cmp(&diagnostic_key(b)));
+    result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
+    Ok(result)
+}
+
+fn create_program(
+    host: &ConfigHost,
+    mut config: ParsedCommandLine,
+    single_threaded: bool,
+    checker_limit: Option<std::num::NonZeroUsize>,
+) -> &'static Program {
+    configure_threads(&mut config, single_threaded, checker_limit);
+    let compiler_host = new_compiler_host(
+        &host.cwd,
+        Arc::clone(&host.fs),
+        &bundled::default_lib_path(),
+        None,
+        None,
+        None,
+    );
+    let mut program_options = ProgramOptions::new(P::new(config), compiler_host);
+    program_options.canonical_diagnostics = false;
+    program_options.use_source_of_project_reference = true;
+    new_program(program_options)
 }
 
 fn configure_threads(
@@ -81,11 +201,40 @@ pub(crate) fn check_with_fs(
     result
         .typescript_diagnostics
         .extend(fatal.into_iter().map(compiler_diagnostic));
-    let Some(mut config) = config else {
+    let Some(config) = config else {
         result.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
         return Ok(result);
     };
-    configure_threads(&mut config, options.single_threaded, checker_limit);
+    let start = Instant::now();
+    let program = create_program(&host, config, options.single_threaded, checker_limit);
+    let program_ms = start.elapsed().as_secs_f64() * 1000.0;
+    let mut checked = check_program(&options, program, file_rules, None)?;
+    checked.timings.config_ms += result.timings.config_ms;
+    checked.timings.program_ms += program_ms;
+    checked.timings.total_ms = total_start.elapsed().as_secs_f64() * 1000.0;
+    result
+        .typescript_diagnostics
+        .extend(checked.typescript_diagnostics);
+    Ok(CheckResult {
+        typescript_diagnostics: result.typescript_diagnostics,
+        ..checked
+    })
+}
+
+fn check_program(
+    options: &CheckOptions,
+    program: &'static Program,
+    file_rules: Option<&std::collections::BTreeMap<String, Vec<crate::Rule>>>,
+    targets: Option<&BTreeSet<String>>,
+) -> Result<CheckResult, String> {
+    let total_start = Instant::now();
+    let start = Instant::now();
+    let cwd = std::env::current_dir()
+        .map_err(|e| e.to_string())?
+        .to_string_lossy()
+        .into_owned();
+    let mut result = CheckResult::default();
+    let config = program.command_line();
     let configuration = if file_rules.is_some() {
         effect_config::resolve_oxlint(&config, options.rules.as_deref().unwrap_or_default())?
     } else {
@@ -96,31 +245,36 @@ pub(crate) fn check_with_fs(
         )?
     };
     result.timings.config_ms = start.elapsed().as_secs_f64() * 1000.0;
-    result
-        .typescript_diagnostics
-        .extend(configuration.diagnostics().iter().map(|diagnostic| {
-            CompilerDiagnostic {
-                code: diagnostic.code,
-                severity: diagnostic.severity,
-                message: diagnostic.message.clone(),
-                location: diagnostic
-                    .file
-                    .zip(diagnostic.range)
-                    .map(|(file, range)| location(file, range)),
-            }
-        }));
-
-    let start = Instant::now();
-    let compiler_host = new_compiler_host(&cwd, fs, &bundled::default_lib_path(), None, None, None);
-    let mut program_options = ProgramOptions::new(P::new(config), compiler_host);
-    program_options.canonical_diagnostics = false;
-    if file_rules.is_some() {
-        program_options.use_source_of_project_reference = true;
+    if options.type_check {
+        result
+            .typescript_diagnostics
+            .extend(configuration.diagnostics().iter().map(|diagnostic| {
+                CompilerDiagnostic {
+                    code: diagnostic.code,
+                    severity: diagnostic.severity,
+                    message: diagnostic.message.clone(),
+                    location: diagnostic
+                        .file
+                        .zip(diagnostic.range)
+                        .map(|(file, range)| location(file, range)),
+                }
+            }));
     }
-    // Keep the AST and checker alive for the Effect pass after checking.
-    // ProgramOptions::new already disables leaf reclamation and checker recycling.
-    let program = new_program(program_options);
-    result.timings.program_ms = start.elapsed().as_secs_f64() * 1000.0;
+    let target_files = targets.map(|targets| {
+        targets
+            .iter()
+            .filter_map(|file| program.get_source_file(file))
+            .collect::<Vec<_>>()
+    });
+    if let Some(files) = &target_files {
+        if !configuration.has_plugin() && options.lspconfig.is_none() {
+            result.summary.files_without_plugin = files.len();
+        }
+        if !options.type_check && (files.is_empty() || !configuration.has_plugin()) {
+            return Ok(result);
+        }
+    }
+
     let context = Context::background();
 
     let start = Instant::now();
@@ -143,7 +297,22 @@ pub(crate) fn check_with_fs(
     let start = Instant::now();
     let mut files = Vec::new();
     let mut file_configs = Vec::new();
-    for &file in program.source_files() {
+    for &file in target_files
+        .as_deref()
+        .unwrap_or_else(|| program.source_files())
+    {
+        if targets.is_some() {
+            if !configuration.has_plugin() {
+                continue;
+            }
+            result.summary.files_checked += 1;
+        }
+        if file_rules.is_none()
+            && (program.skip_type_checking(file, false)
+                || tsrs_ast::is_plain_js_file(Some(file), program.options().check_js))
+        {
+            continue;
+        }
         if file.is_declaration_file() || program.is_source_file_from_external_library(file) {
             continue;
         }
@@ -159,7 +328,9 @@ pub(crate) fn check_with_fs(
         files.push(file);
         file_configs.push(file_config);
     }
-    result.summary.files_checked = files.len();
+    if targets.is_none() {
+        result.summary.files_checked = files.len();
+    }
     let analyses = analyze_files(program, &files, &file_configs);
     for (mut file_config, found) in file_configs.into_iter().zip(analyses) {
         for found in found {
@@ -204,11 +375,13 @@ pub(crate) fn check_with_fs(
         }
     }
     result.timings.effect_ms = start.elapsed().as_secs_f64() * 1000.0;
-    result.typescript_diagnostics.extend(
-        sort_and_deduplicate_diagnostics(&compiler_errors)
-            .into_iter()
-            .map(compiler_diagnostic),
-    );
+    if options.type_check {
+        result.typescript_diagnostics.extend(
+            sort_and_deduplicate_diagnostics(&compiler_errors)
+                .into_iter()
+                .map(compiler_diagnostic),
+        );
+    }
     result
         .diagnostics
         .sort_by(|a, b| diagnostic_key(a).cmp(&diagnostic_key(b)));
@@ -413,7 +586,7 @@ mod tests {
             (8, true, false, Some(4), 1, true),
             (8, false, true, None, 1, true),
         ] {
-            let mut config = tsrs_tsoptions::new_parsed_command_line(
+            let config = tsrs_tsoptions::new_parsed_command_line(
                 P::new(tsrs_core::CompilerOptions {
                     no_lib: Tristate::True,
                     checkers: Some(configured),
@@ -431,18 +604,15 @@ mod tests {
                     use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
                 },
             );
-            configure_threads(&mut config, cli_single, limit.and_then(NonZeroUsize::new));
-            let host = new_compiler_host(
-                &cwd,
-                Arc::clone(&fs),
-                &bundled::default_lib_path(),
-                None,
-                None,
-                None,
+            let program = create_program(
+                &ConfigHost {
+                    cwd: cwd.clone(),
+                    fs: Arc::clone(&fs),
+                },
+                config,
+                cli_single,
+                limit.and_then(NonZeroUsize::new),
             );
-            let mut options = ProgramOptions::new(P::new(config), host);
-            options.canonical_diagnostics = false;
-            let program = new_program(options);
             assert_eq!(program.single_threaded(), single);
             assert_eq!(program.checker_count(), expected);
         }

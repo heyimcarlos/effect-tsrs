@@ -41,7 +41,7 @@ See [Plugin Options](#plugin-options) to configure diagnostics.
 Install a supported Oxlint pair, then run it through the Rust adapter:
 
 ```sh
-npm install --save-dev oxlint@1.89.0 oxlint-tsgolint@7.0.2004
+npm install --save-dev oxlint@1.89.0 oxlint-tsgolint@7.0.2005
 npx effect-tsrs oxlint .
 ```
 
@@ -65,7 +65,8 @@ per-file overrides, ignore patterns, and suppression comments. All 130 Effect
 rules run in Rust; other type-aware rules and `--type-check` use the installed
 `oxlint-tsgolint` backend. Effect behavior options and source
 directives remain supported; Oxlint rule selection overrides tsconfig diagnostic
-severities. Effect quick fixes, suggestions, and per-rule profiling are not ported.
+severities. Effect code actions (quick fixes and suggested edits) and per-rule
+profiling are not ported.
 
 `--threads N` limits the compiler workers as well as Oxlint's frontend. Under an
 explicit limit the Rust and Go backend passes run sequentially; `--threads 1`
@@ -83,9 +84,9 @@ For existing scripts or editor integrations that invoke Oxlint directly, run
 after reinstalling dependencies. Patching refuses shared symlink targets outside
 the project; `effect-tsrs oxlint` works without modifying installed packages.
 
-Supported versions: Oxlint **1.87.0–1.89.0**, oxlint-tsgolint **7.0.2003–7.0.2004**.
-The packaged frontend bindings come from `@effect/tsgo@0.56.0`; the Effect backend
-is this Rust port. Linux Oxlint integration requires glibc; the standalone
+Supported Oxlint and oxlint-tsgolint versions, along with the packaged frontend
+source, are pinned in [the Oxlint metadata](bin/oxlint-metadata.json). The Effect
+backend is this Rust port. Linux Oxlint integration requires glibc; the standalone
 diagnostic CLI also works with musl.
 
 From a source checkout, run `npm run build:release && npm run prepare:oxlint`,
@@ -96,9 +97,14 @@ protocol, covering all 130 rules, including duplicate diagnostics and related ra
 
 ## Standalone type-aware linter
 
-The CLI checks your TypeScript project and reports both TypeScript errors and
-Effect-specific diagnostics. Add it to your project scripts to run the same check
-locally and in CI:
+The CLI reports Effect diagnostics using the defaults and project selection of
+the [supported `@effect/tsgo` version](#supported-package-versions). It targets
+configured root files and roots of referenced projects; imported files outside
+those roots supply types but receive no Effect diagnostics. Shared roots use
+the selected project's plugin configuration. See
+[project selection](PORTING.md#project-selection) for reference loading,
+overlap precedence, and file eligibility. Add it to your project scripts to run
+the same check locally and in CI:
 
 ```json
 {
@@ -114,10 +120,17 @@ Diagnostics can also be emitted as JSON for other tools:
 npx effect-tsrs diagnostics --project tsconfig.json --format json
 ```
 
-JSON contains separate `diagnostics` and `typescriptDiagnostics` arrays, a summary,
-and timings. The command exits with **0** when there are no errors, **1** for
-TypeScript or Effect errors, and **2** for invocation or compiler failures.
-Warnings and suggestions do not fail the command.
+The exit status reflects Effect errors (and warnings with `--strict`). Add
+`--type-check` to also report ordinary TypeScript diagnostics and include them in
+the exit status. This explicitly enables the combined check used by earlier
+effect-tsrs versions.
+
+JSON contains separate `diagnostics` and `typescriptDiagnostics` arrays,
+[summary counts](PORTING.md#project-selection), and timings.
+`typescriptDiagnostics` is populated by `--type-check`. The command
+exits with **0** when there are no errors, **1** for project or diagnostic errors,
+and **2** for invalid arguments. Warnings and suggestions do not fail the command
+by default.
 
 Use `--strict` to also exit with **1** when warnings are reported, matching
 `effect-tsgo diagnostics --strict`:
@@ -138,7 +151,7 @@ The current release is built and tested with the following versions:
 | Effect | V3 (`3.19.19`) and V4 (`4.0.2`) |
 | TypeScript | `7.1.0-beta`, bundled through tsrs |
 | tsrs | `0.19.0`, pinned in [upstream.json](upstream.json) |
-| Effect diagnostic rules | `@effect/tsgo@0.56.0` |
+| Effect diagnostic rules | `@effect/tsgo@0.56.1` |
 | Node.js | `>=22.14` |
 
 ## Diagnostic Status
@@ -320,9 +333,10 @@ does not replace your editor's TypeScript language server or build command.
 ### Version Pinning
 
 Each release bundles a pinned tsrs compiler and its TypeScript standard libraries.
-[upstream.json](upstream.json) records the compiler revision; the Effect rule set
-comes from `@effect/tsgo@0.56.0`. Updating a separate TypeScript installation does
-not change the compiler used by `effect-tsrs`.
+[upstream.json](upstream.json) records the compiler revision; see
+[Supported Package Versions](#supported-package-versions) for the Effect diagnostic
+baseline. Updating a separate TypeScript installation does not change the compiler
+used by `effect-tsrs`.
 
 ### When to Upgrade
 
@@ -332,8 +346,9 @@ diagnostics you need. npm installs the matching native package for your platform
 ## Plugin Options
 
 Configure diagnostics in your existing `tsconfig.json` using the same
-`@effect/language-service` plugin entry as upstream. Without a plugin entry,
-the CLI uses the upstream rule defaults.
+`@effect/language-service` plugin entry as upstream. By default, the CLI skips
+Effect diagnostics for a project without a plugin entry. Pass `--lspconfig '{}'` to
+explicitly activate upstream defaults without editing the project config.
 
 ```jsonc
 {
@@ -343,7 +358,7 @@ the CLI uses the upstream rule defaults.
         "name": "@effect/language-service",
         // Enable Effect diagnostics. (default: true)
         "diagnostics": true,
-        // Include suggestion-level diagnostics in CLI output. (default: true)
+        // Upstream tsc option; standalone diagnostics always includes suggestions.
         "includeSuggestionsInTsc": true,
         // Process disabled rules so source directives can re-enable them.
         "skipDisabledOptimization": false,
@@ -398,7 +413,7 @@ directives are supported:
 Effect.succeed(42)
 ```
 
-To select rules for a single run:
+To select rules for a single run, also opting in when no plugin entry exists:
 
 ```sh
 npx effect-tsrs diagnostics --project tsconfig.json --rules floatingEffect,asyncFunction
