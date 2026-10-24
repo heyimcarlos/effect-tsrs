@@ -111,5 +111,6 @@ jobs:
             artifacts/npm/*.tgz
             artifacts/npm/package-*.json
             artifacts/verify-package/
-            artifacts/verify-config/
+            artifacts/verify-config/report.json
+            artifacts/verify-config/cases/*/results/**
           if-no-files-found: error
